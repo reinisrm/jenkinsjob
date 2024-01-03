@@ -1,15 +1,14 @@
 package models;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 
-@Getter
-@Setter
+import java.util.ArrayList;
+import java.util.Collection;
+
+@Entity
 @Table(name = "user_table")
-@AllArgsConstructor
+@Data
 @NoArgsConstructor
 public class User {
     @Id
@@ -20,4 +19,34 @@ public class User {
     private String username;
     @Column(name = "password")
     private String password;
+
+    @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
+    private Collection<Authority> authorities = new ArrayList<>();
+
+    public Collection<Authority> getAuthorities() {
+        return authorities;
+    }
+
+    public void setAuthorities(Collection<Authority> authorities) {
+        this.authorities = authorities;
+    }
+
+    public User(String username, String password) {
+        super();
+        this.username = username;
+        setPassword(password);
+    }
+
+    public void addAuthority(Authority authority) {
+        if(!authorities.contains(authority)) {
+            authorities.add(authority);
+        }
+    }
+    public void removeAuthority(Authority authority) {
+        if(authorities.contains(authority)) {
+            authorities.remove(authority);
+        }
+    }
+
+
 }
