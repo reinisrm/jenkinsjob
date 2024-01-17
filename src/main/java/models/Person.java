@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.util.List;
-
+@Entity
 @Getter
 @Setter
 @Table(name = "person_table")
@@ -17,13 +17,13 @@ public class Person {
     @Column(name = "id_person")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int personId;
-    @Column(name = "Vards")
+    @Column(name = "Name")
     private String name;
-    @Column(name = "Uzvards")
+    @Column(name = "Surname")
     private String surname;
-    @Column(name = "Telefona Nr")
+    @Column(name = "Phone_Number")
     private String phoneNumber;
-    @Column(name = "Kurss")
+    @Column(name = "Course_Name")
     private String courseName;
 
     @OneToMany(mappedBy = "borrower")
