@@ -1,6 +1,6 @@
-package repos;
+package com.example.InventorySystem.repos;
 
-import models.Authority;
+import com.example.InventorySystem.models.Authority;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

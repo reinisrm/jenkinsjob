@@ -57,6 +57,7 @@
          th {
              background-color: #4CAF50;
              color: #fff;
+             cursor: pointer; /* Add cursor style to indicate clickable */
          }
 
          tr:nth-child(even) {
@@ -82,29 +83,69 @@
          }
 
     </style>
+    <script>
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.querySelector("table");
+            switching = true;
+            dir = "asc";
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                    if (dir === "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-<!-- Navigation bar --> <!--
+<!-- Navigation bar -->
 <div class="navbar">
-    <a href="/home">Home</a>
-    <a href="/personel/showAll">Personel</a>
-    <a href="/courses/showAll">Courses</a>
-    <a href="/thesis/showAll">Theses</a>
-    <a href="/comments/showAll">Comments</a>
-    <a href="/student/showAll">Students</a>
+    <a href="/inventory/">Inventory</a>
+    <a href="/person/">Person</a>
+    <a href="/lending/">Lending</a>
     <a class="logout" href="http://localhost:8080/logout">Log out</a>
 </div>
- -->
 <!-- Main content -->
 <div class="content">
     <div class="container" th:if="${not #lists.isEmpty(persons)}">
         <table>
             <tr>
-                <th>ID</th>
-                <th>Name</th>
-                <th>Surname</th>
-                <th>Phone Number</th>
-                <th>Course Name</th>
+                <th onclick="sortTable(0)">ID</th>
+                <th onclick="sortTable(1)">Name</th>
+                <th onclick="sortTable(2)">Surname</th>
+                <th onclick="sortTable(3)">Phone Number</th>
+                <th onclick="sortTable(4)">Course Name</th>
+                <th>Actions</th>
             </tr>
             <tr th:each="person : ${persons}">
                 <td th:text="${person.personId}"></td>
@@ -112,14 +153,14 @@
                 <td th:text="${person.surname}"></td>
                 <td th:text="${person.phoneNumber}"></td>
                 <td th:text="${person.courseName}"></td>
-
                 <td>
-                    <!-- Add delete form here -->
+                    <!-- Action Button -->
+                    <a class="btn" th:href="@{/person/{id}(id=${person.personId})}">View</a>
                 </td>
             </tr>
         </table>
     </div>
-    <a class="btn" th:href="@{/person/add}">Add New</a>
+    <a class="btn" th:href="@{/person/create}">Add New</a>
 </div>
 
 </body>

@@ -1,6 +1,6 @@
-package repos;
+package com.example.InventorySystem.repos;
 
-import models.Person;
+import com.example.InventorySystem.models.Person;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

@@ -1,17 +1,9 @@
-package models;
+package com.example.InventorySystem.models;
 
 import java.util.ArrayList;
 import java.util.Collection;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 
 @Entity
@@ -27,9 +19,11 @@ public class Authority {
     private String title;
 
     @ManyToMany
-    @JoinTable(name = "Users_Authorities",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name="authority_id"))
+    @JoinTable(
+            name = "Users_Authorities",
+            joinColumns = @JoinColumn(name = "authority_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
     private Collection<User> users = new ArrayList<>();
 
 

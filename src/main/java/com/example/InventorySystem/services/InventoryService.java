@@ -1,6 +1,6 @@
-package services;
+package com.example.InventorySystem.services;
 
-import models.Inventory;
+import com.example.InventorySystem.models.Inventory;
 
 import java.util.List;
 import java.util.Optional;

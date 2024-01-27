@@ -1,4 +1,4 @@
-package models;
+package com.example.InventorySystem.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -24,7 +24,7 @@ public class Inventory {
     @Column(name = "Room")
     private String room;
 
-    @OneToMany(mappedBy = "inventory")
+    @OneToMany(mappedBy = "inventory", cascade = CascadeType.ALL)
     private List<Lending> lending;
 
     public Inventory(String device, String inventoryNumber, String room) {

@@ -1,4 +1,4 @@
-package models;
+package com.example.InventorySystem.models;
 
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -16,15 +16,15 @@ public class Lending {
     @Column(name = "id_lending")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int lendingId;
-    @Column(name = "Date")
+    @Column(name = "date")
     private LocalDate date;
-    @Column(name = "Estimated_Return_Date")
+    @Column(name = "estimated_return_date")
     private LocalDate estimatedReturnDate;
-    @Column(name = "isRecieved")
+    @Column(name = "isReceived")
     private boolean isReceived;
     @Column(name = "isReturned")
     private boolean isReturned;
-    @Column(name = "Comments")
+    @Column(name = "comments")
     private String comments;
 
     @ManyToOne
@@ -39,7 +39,7 @@ public class Lending {
     @JoinColumn(name = "lender_id")
     private Person lender;
 
-    public Lending(LocalDate Date, Inventory inventory, Person borrower, Person lender, LocalDate estimatedReturnDate, boolean isReceived, boolean isReturned,
+    public Lending(LocalDate date, Inventory inventory, Person borrower, Person lender, LocalDate estimatedReturnDate, boolean isReceived, boolean isReturned,
                    String comments) {
         this.date = date;
         this.inventory = inventory;

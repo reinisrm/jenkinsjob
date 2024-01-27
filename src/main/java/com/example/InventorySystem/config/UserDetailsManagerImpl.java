@@ -1,12 +1,12 @@
-package config;
+package com.example.InventorySystem.config;
 
-import models.User;
+import com.example.InventorySystem.models.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.stereotype.Service;
-import repos.UserRepo;
+import com.example.InventorySystem.repos.UserRepo;
 
 import java.util.List;
 @Service

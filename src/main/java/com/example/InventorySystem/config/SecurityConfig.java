@@ -1,4 +1,4 @@
-package config;
+package com.example.InventorySystem.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -6,7 +6,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityCustomizer;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
@@ -17,12 +16,12 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    /*
-	@Bean
-	public WebSecurityCustomizer webSecurityCustomizer() {
-		return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/h2-console/**"));
-	}
-    */
+
+	//@Bean
+	//public WebSecurityCustomizer webSecurityCustomizer() {
+	//	return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/h2-console/**"));
+	//}
+
 
 
     //@Bean
@@ -50,23 +49,24 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/lending").hasAnyAuthority("ADMIN") // retrieve
-                        .requestMatchers("/lending/**").hasAnyAuthority("ADMIN") // retrieve one
-                        .requestMatchers("/lending/delete/**").hasAnyAuthority("ADMIN") // delete
-                        .requestMatchers("/lending/create").hasAnyAuthority("ADMIN") // create
-                        .requestMatchers("/lending/update/**").hasAnyAuthority("ADMIN") // update
-                        .requestMatchers("/person").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/person/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/person/delete/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/person/create").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/person/update/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/inventory").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/inventory/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/inventory/delete/**").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/inventory/create").hasAnyAuthority("ADMIN")
-                        .requestMatchers("/inventory/update/**").hasAnyAuthority("ADMIN"))
+                        .requestMatchers("/error").permitAll()
+                        .requestMatchers("/lending").hasAuthority("ADMIN") // retrieve
+                        .requestMatchers("/lending/**").hasAuthority("ADMIN") // retrieve one
+                        .requestMatchers("/lending/delete/**").hasAuthority("ADMIN") // delete
+                        .requestMatchers("/lending/create").hasAuthority("ADMIN") // create
+                        .requestMatchers("/lending/update/**").hasAuthority("ADMIN") // update
+                        .requestMatchers("/person").hasAuthority("ADMIN")
+                        .requestMatchers("/person/**").hasAuthority("ADMIN")
+                        .requestMatchers("/person/delete/**").hasAuthority("ADMIN")
+                        .requestMatchers("/person/create").hasAuthority("ADMIN")
+                        .requestMatchers("/person/update/**").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory/**").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory/delete/**").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory/create").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory/update/**").hasAuthority("ADMIN"))
                         .formLogin(login -> login
-                            .defaultSuccessUrl("/lending")  // Redirect after successful login
+                            .defaultSuccessUrl("/lending/")  // Redirect after successful login
                             .permitAll())
                         .logout(logout -> logout
                              .permitAll());

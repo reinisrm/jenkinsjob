@@ -1,7 +1,7 @@
-package config;
+package com.example.InventorySystem.config;
 
-import models.Authority;
-import models.User;
+import com.example.InventorySystem.models.Authority;
+import com.example.InventorySystem.models.User;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -37,12 +37,12 @@ public class MyUserDetails implements UserDetails {
 
     @Override
     public String getPassword() {
-        return null;
+        return user.getPassword();
     }
 
     @Override
     public String getUsername() {
-        return null;
+        return user.getUsername();
     }
 
     @Override

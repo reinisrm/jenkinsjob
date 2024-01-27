@@ -57,6 +57,7 @@
          th {
              background-color: #4CAF50;
              color: #fff;
+             cursor: pointer; /* Add cursor style to indicate clickable */
          }
 
          tr:nth-child(even) {
@@ -82,53 +83,92 @@
          }
 
     </style>
+    <script>
+        function sortTable(n) {
+            var table, rows, switching, i, x, y, shouldSwitch, dir, switchcount = 0;
+            table = document.querySelector("table");
+            switching = true;
+            dir = "asc";
+
+            while (switching) {
+                switching = false;
+                rows = table.rows;
+
+                for (i = 1; i < (rows.length - 1); i++) {
+                    shouldSwitch = false;
+
+                    x = rows[i].getElementsByTagName("TD")[n];
+                    y = rows[i + 1].getElementsByTagName("TD")[n];
+
+                    if (dir === "asc") {
+                        if (x.innerHTML.toLowerCase() > y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    } else if (dir === "desc") {
+                        if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+                            shouldSwitch = true;
+                            break;
+                        }
+                    }
+                }
+
+                if (shouldSwitch) {
+                    rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+                    switching = true;
+                    switchcount++;
+                } else {
+                    if (switchcount === 0 && dir === "asc") {
+                        dir = "desc";
+                        switching = true;
+                    }
+                }
+            }
+        }
+    </script>
 </head>
 <body>
-<!-- Navigation bar --> <!--
+<!-- Navigation bar -->
 <div class="navbar">
-    <a href="/home">Home</a>
-    <a href="/personel/showAll">Personel</a>
-    <a href="/courses/showAll">Courses</a>
-    <a href="/thesis/showAll">Theses</a>
-    <a href="/comments/showAll">Comments</a>
-    <a href="/student/showAll">Students</a>
+    <a href="/inventory/">Inventory</a>
+    <a href="/person/">Person</a>
+    <a href="/lending/">Lending</a>
     <a class="logout" href="http://localhost:8080/logout">Log out</a>
 </div>
- -->
 <!-- Main content -->
 <div class="content">
-    <div class="container" th:if="${not #lists.isEmpty(lendingList)}">
+    <div class="container" th:if="${not #lists.isEmpty(lendings)}">
         <table>
             <tr>
-                <th>ID</th>
-                <th>Date</th>
-                <th>Estimated Return Date</th>
-                <th>Received</th>
-                <th>Returned</th>
-                <th>Comments</th>
-                <th>Inventory</th>
-                <th>Borrower</th>
-                <th>Lender</th>
+                <th onclick="sortTable(0)">ID</th>
+                <th onclick="sortTable(1)">Date</th>
+                <th onclick="sortTable(2)">Estimated Return Date</th>
+                <th onclick="sortTable(3)">Received</th>
+                <th onclick="sortTable(4)">Returned</th>
+                <th onclick="sortTable(5)">Comments</th>
+                <th onclick="sortTable(6)">Inventory</th>
+                <th onclick="sortTable(7)">Borrower</th>
+                <th onclick="sortTable(8)">Lender</th>
+                <th>Actions</th>
             </tr>
-            <tr th:each="lending : ${lendingList}">
+            <tr th:each="lending : ${lendings}">
                 <td th:text="${lending.lendingId}"></td>
                 <td th:text="${lending.date}"></td>
                 <td th:text="${lending.estimatedReturnDate}"></td>
-                <td th:text="${lending.isReceived}"></td>
-                <td th:text="${lending.isReturned}"></td>
+                <td th:text="${lending.received}"></td>
+                <td th:text="${lending.returned}"></td>
                 <td th:text="${lending.comments}"></td>
-                <td th:text="${lending.inventory.device}"></td>
-                <td th:text="${lending.borrower.name}"></td>
-                <td th:text="${lending.lender.name}"></td>
-
+                <td th:text="${lending.inventory.inventoryNumber}"></td>
+                <td th:text="${lending.borrower.name + ' ' + lending.borrower.surname}"></td>
+                <td th:text="${lending.lender.name + ' ' + lending.lender.surname}"></td>
                 <td>
-                    <!-- Add delete form here -->
+                    <!-- Added button for each row -->
+                    <a class="btn" th:href="@{/lending/{lendingId}(lendingId=${lending.lendingId})}">View</a>
                 </td>
             </tr>
         </table>
     </div>
     <a class="btn" th:href="@{/lending/create}">Add New</a>
 </div>
-
 </body>
 </html>

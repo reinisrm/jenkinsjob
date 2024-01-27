@@ -84,66 +84,69 @@
     </style>
 </head>
 <body>
-<!-- Navigation bar --> <!--
+<!-- Navigation bar -->
 <div class="navbar">
-    <a href="/home">Home</a>
-    <a href="/personel/showAll">Personel</a>
-    <a href="/courses/showAll">Courses</a>
-    <a href="/thesis/showAll">Theses</a>
-    <a href="/comments/showAll">Comments</a>
-    <a href="/student/showAll">Students</a>
+    <a href="/inventory/">Inventory</a>
+    <a href="/person/">Person</a>
+    <a href="/lending/">Lending</a>
     <a class="logout" href="http://localhost:8080/logout">Log out</a>
 </div>
- -->
 <!-- Main content -->
 <div class="content">
     <div class="container">
         <h2>Create Lending</h2>
         <form th:action="@{/lending/create}" th:object="${lending}" method="post">
+
             <div>
                 <label for="date">Date</label>
-                <input type="date" id="date" th:field="*{date}" name="date" required>
+                <input type="date" id="date" th:field="${lending.date}" name="date">
             </div>
             <div>
                 <label for="estimatedReturnDate">Estimated Return Date</label>
-                <input type="date" id="estimatedReturnDate" th:field="*{estimatedReturnDate}" name="estimatedReturnDate" required>
+                <input type="date" id="estimatedReturnDate" th:field="${lending.estimatedReturnDate}" name="estimatedReturnDate">
             </div>
+
             <div>
                 <label for="isReceived">Received</label>
-                <input type="checkbox" id="isReceived" th:field="*{isReceived}" name="isReceived">
+                <select id="isReceived" th:field="${lending.received}" name="received" required>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
             </div>
             <div>
                 <label for="isReturned">Returned</label>
-                <input type="checkbox" id="isReturned" th:field="*{isReturned}" name="isReturned">
+                <select id="isReturned" th:field="${lending.returned}" name="returned" required>
+                    <option value="true">True</option>
+                    <option value="false">False</option>
+                </select>
             </div>
+
             <div>
                 <label for="comments">Comments</label>
-                <input type="text" id="comments" th:field="*{comments}" name="comments">
+                <input type="text" id="comments" th:field="${lending.comments}" name="comments">
             </div>
 
-            <!-- Dropdown for Inventory -->
             <div>
                 <label for="inventory">Inventory</label>
-                <select id="inventory" th:field="*{inventory.inventoryId}" name="inventoryId" required>
-                    <option th:each="inv : ${inventoryList}" th:value="${inv.inventoryId}" th:text="${inv.device}"></option>
+                <select id="inventory" th:field="${lending.inventory.inventoryId}" name="inventory" required>
+                    <option th:each="inv : ${inventoryList}" th:value="${inv.inventoryId}" th:text="${inv.inventoryNumber}" th:selected="${inv.inventoryId == lending.inventory.inventoryId}"></option>
                 </select>
             </div>
 
-            <!-- Dropdown for Borrower -->
             <div>
                 <label for="borrower">Borrower</label>
-                <select id="borrower" th:field="*{borrower.personId}" name="borrowerId" required>
-                    <option th:each="borrower : ${borrowerList}" th:value="${borrower.personId}" th:text="${borrower.name}"></option>
+                <select id="borrower" th:field="${lending.borrower.personId}" name="borrower" required>
+                    <option th:each="borrower : ${borrowerList}" th:value="${borrower.personId}" th:text="${borrower.name + ' ' + borrower.surname}" th:selected="${borrower.personId == lending.borrower.personId}"></option>
                 </select>
             </div>
 
-            <!-- Dropdown for Lender -->
             <div>
                 <label for="lender">Lender</label>
-                <select id="lender" th:field="*{lender.personId}" name="lenderId" required>
-                    <option th:each="lender : ${lenderList}" th:value="${lender.personId}" th:text="${lender.name}"></option>
+                <select id="lender" th:field="${lending.lender.personId}" name="lender" required>
+                    <option th:each="lender : ${lenderList}" th:value="${lender.personId}" th:text="${lender.name + ' ' + lender.surname}" th:selected="${lender.personId == lending.lender.personId}"></option>
                 </select>
             </div>
+
 
             <button type="submit">Create Lending</button>
         </form>

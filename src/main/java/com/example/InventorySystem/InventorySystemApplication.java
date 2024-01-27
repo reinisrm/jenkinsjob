@@ -1,18 +1,24 @@
 package com.example.InventorySystem;
 
-import models.*;
+import com.example.InventorySystem.models.*;
+import com.example.InventorySystem.repos.*;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import repos.*;
+
 
 import java.time.LocalDate;
 
-@SpringBootApplication(exclude = {SecurityAutoConfiguration.class })
+@SpringBootApplication
+@ComponentScan(basePackages = "com.example.InventorySystem")
+@EnableAutoConfiguration(exclude = SecurityAutoConfiguration.class)
 public class InventorySystemApplication {
 
 	public static void main(String[] args) {
@@ -23,7 +29,7 @@ public class InventorySystemApplication {
 	public PasswordEncoder passwordEncoderSimple() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
-	@Bean //Calls function when system runs
+	//@Bean //Calls function when system runs
 	public CommandLineRunner testModel(
 			AuthorityRepo authorityRepo,
 			UserRepo userRepo,
@@ -38,9 +44,12 @@ public class InventorySystemApplication {
 
 				//Setting roles to users
 				User user1 = new User("Vairis", passwordEncoderSimple().encode("123"));
+				userRepo.save(user1);
 				User user2 = new User("Reinis", passwordEncoderSimple().encode("321"));
+				userRepo.save(user2);
 
 				Authority auth1 = new Authority("ADMIN");
+				//Authority auth2 = new Authority("USER"); Will be used in the future
 
 				auth1.addUser(user1);
 				auth1.addUser(user2);
