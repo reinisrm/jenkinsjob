@@ -64,7 +64,7 @@ public class InventoryController {
             temp.setDevice(inventory.getDevice());
             temp.setInventoryNumber(inventory.getInventoryNumber());
             temp.setRoom(inventory.getRoom());
-
+            temp.setCabinet(inventory.getCabinet());
             inventoryService.createInventory(temp);
             return "redirect:/inventory/";
         } catch (Exception e) {

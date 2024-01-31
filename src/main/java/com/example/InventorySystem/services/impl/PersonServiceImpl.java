@@ -1,5 +1,6 @@
 package com.example.InventorySystem.services.impl;
 
+import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.models.Person;
 import com.example.InventorySystem.repos.PersonRepo;
 import com.example.InventorySystem.services.PersonService;
@@ -83,6 +84,16 @@ public class PersonServiceImpl implements PersonService {
         try {
             Optional<Person> existingPersonOptional = personRepo.findById(personId);
             if (existingPersonOptional.isPresent()) {
+                Person existingPerson = existingPersonOptional.get();
+                // remove person as a borrower in lending
+                for (Lending lending : existingPerson.getBorrowing()) {
+                    lending.setBorrower(null);
+                }
+                // remove person as a lender in lending
+                for (Lending lending : existingPerson.getLending()) {
+                    lending.setLender(null);
+                }
+
                 personRepo.deleteById(personId);
             } else {
                 throw new NoSuchElementException("Person not found");

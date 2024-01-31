@@ -21,6 +21,7 @@ public class InventoryServiceImpl implements InventoryService {
     @Autowired
     private InventoryRepo inventoryRepo;
 
+
     @Override
     public List<Inventory> getAll() {
         try {
@@ -71,6 +72,7 @@ public class InventoryServiceImpl implements InventoryService {
                 existingInventory.setDevice(updatedInventoryData.getDevice());
                 existingInventory.setInventoryNumber(updatedInventoryData.getInventoryNumber());
                 existingInventory.setRoom(updatedInventoryData.getRoom());
+                existingInventory.setCabinet(updatedInventoryData.getCabinet());
 
                 // Save the updated Inventory
                 inventoryRepo.save(existingInventory);
@@ -93,6 +95,13 @@ public class InventoryServiceImpl implements InventoryService {
         try {
             Optional<Inventory> existingInventoryOptional = inventoryRepo.findById(inventoryId);
             if (existingInventoryOptional.isPresent()) {
+                Inventory existingInventory = existingInventoryOptional.get();
+
+                // Set the associated inventories in lendings to null
+                for (Lending lending : existingInventory.getLending()) {
+                    lending.setInventory(null);
+                }
+
                 inventoryRepo.deleteById(inventoryId);
             } else {
                 throw new NoSuchElementException("Inventory not found");
@@ -102,4 +111,6 @@ public class InventoryServiceImpl implements InventoryService {
             throw e;
         }
     }
+
+
 }

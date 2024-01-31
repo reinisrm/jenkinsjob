@@ -145,6 +145,7 @@
                 <th onclick="sortTable(1)">Device</th>
                 <th onclick="sortTable(2)">Inventory Number</th>
                 <th onclick="sortTable(3)">Room</th>
+                <th onclick="sortTable(4)">Cabinet</th>
                 <th>Actions</th>
             </tr>
             <tr th:each="inventory : ${inventories}">
@@ -152,6 +153,7 @@
                 <td th:text="${inventory.device}"></td>
                 <td th:text="${inventory.inventoryNumber}"></td>
                 <td th:text="${inventory.room}"></td>
+                <td th:text="${inventory.cabinet}"></td>
                 <td>
                     <!-- Action Button -->
                     <a class="btn" th:href="@{/inventory/{id}(id=${inventory.inventoryId})}">View</a>

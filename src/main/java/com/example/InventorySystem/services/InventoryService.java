@@ -12,4 +12,5 @@ public interface InventoryService {
     void updateInventoryById(int inventoryId, Inventory updatedInventoryData);
     void deleteInventoryById(int inventoryId);
 
+
 }

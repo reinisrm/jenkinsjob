@@ -29,7 +29,7 @@ public class InventorySystemApplication {
 	public PasswordEncoder passwordEncoderSimple() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
-	//@Bean //Calls function when system runs
+	@Bean //Calls function when system runs
 	public CommandLineRunner testModel(
 			AuthorityRepo authorityRepo,
 			UserRepo userRepo,
@@ -61,8 +61,8 @@ public class InventorySystemApplication {
 				userRepo.save(user2);
 
 				//Inventory
-				Inventory inv1 = new Inventory("Device1", "AD2343", "C405");
-				Inventory inv2 = new Inventory("Device2", "GD11", "C405");
+				Inventory inv1 = new Inventory("Device1", "AD2343", "C405", "Skapis1");
+				Inventory inv2 = new Inventory("Device2", "GD11", "C405", "Skapis2");
 				inventoryRepo.save(inv1);
 				inventoryRepo.save(inv2);
 

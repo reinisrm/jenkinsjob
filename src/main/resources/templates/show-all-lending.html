@@ -57,7 +57,7 @@
          th {
              background-color: #4CAF50;
              color: #fff;
-             cursor: pointer; /* Add cursor style to indicate clickable */
+             cursor: pointer;
          }
 
          tr:nth-child(even) {
@@ -81,7 +81,6 @@
          .btn:hover {
              background-color: #45a049;
          }
-
     </style>
     <script>
         function sortTable(n) {
@@ -125,6 +124,39 @@
                 }
             }
         }
+
+        function showAll() {
+            var table = document.querySelector("table");
+            var rows = table.rows;
+
+            for (var i = 1; i < rows.length; i++) {
+                rows[i].style.display = '';
+            }
+        }
+
+        function showActive() {
+            filterLendings(true);
+        }
+
+        function showNonActive() {
+            filterLendings(false);
+        }
+
+        function filterLendings(isNonActive) {
+            var table = document.querySelector("table");
+            var rows = table.rows;
+
+            for (var i = 1; i < rows.length; i++) {
+                var returnedCellValue = rows[i].getElementsByTagName("TD")[4].innerText.trim().toLowerCase();
+                var isReturned = returnedCellValue === 'true';
+
+                if (isReturned === isNonActive) {
+                    rows[i].style.display = 'none';
+                } else {
+                    rows[i].style.display = '';
+                }
+            }
+        }
     </script>
 </head>
 <body>
@@ -137,6 +169,14 @@
 </div>
 <!-- Main content -->
 <div class="content">
+    <!-- Buttons for filtering -->
+    <div>
+        <button onclick="showAll()">Show All</button>
+        <button onclick="showActive()">Show Active</button>
+        <button onclick="showNonActive()">Show Non-active</button>
+    </div>
+
+    <!-- Display lendings table -->
     <div class="container" th:if="${not #lists.isEmpty(lendings)}">
         <table>
             <tr>
@@ -158,16 +198,17 @@
                 <td th:text="${lending.received}"></td>
                 <td th:text="${lending.returned}"></td>
                 <td th:text="${lending.comments}"></td>
-                <td th:text="${lending.inventory.inventoryNumber}"></td>
-                <td th:text="${lending.borrower.name + ' ' + lending.borrower.surname}"></td>
-                <td th:text="${lending.lender.name + ' ' + lending.lender.surname}"></td>
+                <td th:text="${lending.inventory != null ? lending.inventory.inventoryNumber : 'N/A'}"></td>
+                <td th:text="${lending.borrower != null ? lending.borrower.name + ' ' + lending.borrower.surname : 'N/A'}"></td>
+                <td th:text="${lending.lender != null ? lending.lender.name + ' ' + lending.lender.surname : 'N/A'}"></td>
                 <td>
-                    <!-- Added button for each row -->
                     <a class="btn" th:href="@{/lending/{lendingId}(lendingId=${lending.lendingId})}">View</a>
                 </td>
             </tr>
         </table>
     </div>
+
+    <!-- "Add New" button -->
     <a class="btn" th:href="@{/lending/create}">Add New</a>
 </div>
 </body>

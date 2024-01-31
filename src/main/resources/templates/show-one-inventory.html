@@ -117,6 +117,7 @@
                 <th>Device</th>
                 <th>Inventory Number</th>
                 <th>Room</th>
+                <th>Cabinet</th>
                 <th>Actions</th>
             </tr>
             <tr>
@@ -124,6 +125,7 @@
                 <td th:text="${#vars.inventory.get().device}"></td>
                 <td th:text="${#vars.inventory.get().inventoryNumber}"></td>
                 <td th:text="${#vars.inventory.get().room}"></td>
+                <td th:text="${#vars.inventory.get().cabinet}"></td>
                 <td>
                     <!-- Update Button -->
                     <div class="btn-group">

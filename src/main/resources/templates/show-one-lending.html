@@ -130,9 +130,9 @@
                 <td th:text="${#vars.lending.get().received}"></td>
                 <td th:text="${#vars.lending.get().returned}"></td>
                 <td th:text="${#vars.lending.get().comments}"></td>
-                <td th:text="${#vars.lending.get().inventory.inventoryNumber}"></td>
-                <td th:text="${#vars.lending.get().borrower.name + ' ' + #vars.lending.get().borrower.surname}"></td>
-                <td th:text="${#vars.lending.get().lender.name + ' ' + #vars.lending.get().lender.surname}"></td>
+                <td th:text="${#vars.lending.get().inventory != null ? #vars.lending.get().inventory.inventoryNumber : 'N/A'}"></td>
+                <td th:text="${#vars.lending.get().borrower != null ? #vars.lending.get().borrower.name + ' ' + #vars.lending.get().borrower.surname : 'N/A'}"></td>
+                <td th:text="${#vars.lending.get().lender != null ? #vars.lending.get().lender.name + ' ' + #vars.lending.get().lender.surname : 'N/A'}"></td>
                 <td>
                     <!-- Update and Delete Buttons -->
                     <div class="btn-group">

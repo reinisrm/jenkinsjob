@@ -1,6 +1,7 @@
 package com.example.InventorySystem.models;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -16,10 +17,13 @@ public class Person {
     @Column(name = "id_person")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int personId;
+    @NotNull
     @Column(name = "Name")
     private String name;
+    @NotNull
     @Column(name = "Surname")
     private String surname;
+    @NotNull
     @Column(name = "Phone_Number")
     private String phoneNumber;
     @Column(name = "Course_Name")
