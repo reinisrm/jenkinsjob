@@ -18,10 +18,8 @@ public class Inventory {
     @Column(name = "id_inventory")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int inventoryId;
-    @NotNull
     @Column(name = "Device")
     private String device;
-    @NotNull
     @Column(name = "Inventory_Number")
     private String inventoryNumber;
     @Column(name = "Room")

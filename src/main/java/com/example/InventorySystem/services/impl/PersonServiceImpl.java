@@ -3,6 +3,7 @@ package com.example.InventorySystem.services.impl;
 import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.models.Person;
 import com.example.InventorySystem.repos.PersonRepo;
+import com.example.InventorySystem.services.LendingService;
 import com.example.InventorySystem.services.PersonService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,29 +17,29 @@ import java.util.Optional;
 @Service
 public class PersonServiceImpl implements PersonService {
 
-    private final Logger logger = LoggerFactory.getLogger(PersonServiceImpl.class);
+    private final Logger log = LoggerFactory.getLogger(PersonServiceImpl.class);
 
     @Autowired
     private PersonRepo personRepo;
 
+    @Autowired
+    private LendingService lendingService;
+
     @Override
     public List<Person> getAll() {
-        try {
-            return (List<Person>) personRepo.findAll();
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching all persons", e);
-            throw e;
-        }
+        List<Person> personList = personRepo.findAll();
+        return personList;
     }
 
     @Override
     public Optional<Person> getPersonById(int personId) {
-        try {
-            return personRepo.findById(personId);
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching person with ID: {}", personId, e);
-            throw e;
+        Optional<Person> personOptional = personRepo.findById(personId);
+        if (personOptional.isEmpty()) {
+            log.warn("Person with id: {} is not found", personId);
+        } else {
+            log.info("Person found with id: {}", personId);
         }
+        return personOptional;
     }
 
     @Override
@@ -46,11 +47,12 @@ public class PersonServiceImpl implements PersonService {
         try {
             if (person != null && person.getPersonId() == 0) {
                 personRepo.save(person);
+                log.info("Person created successfully: {}", person);
             } else {
                 throw new IllegalArgumentException("Invalid person data or person_id already exists");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while creating person", e);
+            log.error("Error occurred while creating person", e);
             throw e;
         }
     }
@@ -61,20 +63,32 @@ public class PersonServiceImpl implements PersonService {
             Optional<Person> existingPersonOptional = personRepo.findById(personId);
             if (existingPersonOptional.isPresent()) {
                 Person existingPerson = existingPersonOptional.get();
-                if (updatedPersonData != null && existingPerson.getPersonId() == personId) {
-                    existingPerson.setName(updatedPersonData.getName());
-                    existingPerson.setSurname(updatedPersonData.getSurname());
-                    existingPerson.setPhoneNumber(updatedPersonData.getPhoneNumber());
-                    existingPerson.setCourseName(updatedPersonData.getCourseName());
-                    personRepo.save(existingPerson);
-                } else {
-                    throw new IllegalArgumentException("Invalid person_id or data");
+
+                // update existingPerson properties
+                existingPerson.setName(updatedPersonData.getName());
+                existingPerson.setSurname(updatedPersonData.getSurname());
+                existingPerson.setPhoneNumber(updatedPersonData.getPhoneNumber());
+                existingPerson.setCourseName(updatedPersonData.getCourseName());
+
+                // save the updated Person
+                Person updatedPerson = personRepo.save(existingPerson);
+
+                // update references in the associated Lending entities (as borrower and lender)
+                for (Lending lending : updatedPerson.getBorrowing()) {
+                    lending.setBorrower(updatedPerson);
+                    lendingService.updateLending(lending.getLendingId(), lending);
                 }
+                for (Lending lending : updatedPerson.getLending()) {
+                    lending.setLender(updatedPerson);
+                    lendingService.updateLending(lending.getLendingId(), lending);
+                }
+
+                log.info("Person with id: {} updated successfully: {}", personId, updatedPerson);
             } else {
                 throw new NoSuchElementException("Person not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while updating person with ID: {}", personId, e);
+            log.error("Error occurred while updating person with ID: {}", personId, e);
             throw e;
         }
     }
@@ -95,11 +109,12 @@ public class PersonServiceImpl implements PersonService {
                 }
 
                 personRepo.deleteById(personId);
+                log.info("Person with id: {} deleted successfully", personId);
             } else {
                 throw new NoSuchElementException("Person not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while deleting person with ID: {}", personId, e);
+            log.error("Error occurred while deleting person with id: {}", personId, e);
             throw e;
         }
     }

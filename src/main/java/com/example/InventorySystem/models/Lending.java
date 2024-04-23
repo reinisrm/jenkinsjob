@@ -17,16 +17,12 @@ public class Lending {
     @Column(name = "id_lending")
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int lendingId;
-    @NotNull
     @Column(name = "Date")
     private LocalDate date;
-    @NotNull
     @Column(name = "Estimated_return_date")
     private LocalDate estimatedReturnDate;
-    @NotNull
     @Column(name = "isReceived")
     private boolean isReceived;
-    @NotNull
     @Column(name = "isReturned")
     private boolean isReturned;
     @Column(name = "Comments")

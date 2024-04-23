@@ -1,6 +1,7 @@
 package com.example.InventorySystem.services.impl;
 
 import com.example.InventorySystem.models.Lending;
+import com.example.InventorySystem.models.Person;
 import com.example.InventorySystem.repos.LendingRepo;
 import com.example.InventorySystem.services.LendingService;
 import org.slf4j.Logger;
@@ -15,29 +16,26 @@ import java.util.Optional;
 @Service
 public class LendingServiceImpl implements LendingService {
 
-    private final Logger logger = LoggerFactory.getLogger(LendingServiceImpl.class);
+    private final Logger log = LoggerFactory.getLogger(LendingServiceImpl.class);
 
     @Autowired
     private LendingRepo lendingRepo;
 
     @Override
     public List<Lending> getAll() {
-        try {
-            return (List<Lending>) lendingRepo.findAll();
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching all lendings", e);
-            throw e;
-        }
+        List<Lending> lendingList = lendingRepo.findAll();
+        return lendingList;
     }
 
     @Override
     public Optional<Lending> getLendingById(int lendingId) {
-        try {
-            return lendingRepo.findById(lendingId);
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching lending with ID: {}", lendingId, e);
-            throw e;
+        Optional<Lending> personOptional = lendingRepo.findById(lendingId);
+        if (personOptional.isEmpty()) {
+            log.warn("Lending with id: {} is not found", lendingId);
+        } else {
+            log.info("Lending found with id: {}", lendingId);
         }
+        return personOptional;
     }
 
     @Override
@@ -45,11 +43,12 @@ public class LendingServiceImpl implements LendingService {
         try {
             if (lending != null && lending.getLendingId() == 0) {
                 lendingRepo.save(lending);
+                log.info("Lending created successfully: {}", lending);
             } else {
                 throw new IllegalArgumentException("Invalid data or lending_id already exists");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while creating lending", e);
+            log.error("Error occurred while creating lending", e);
             throw e;
         }
     }
@@ -61,6 +60,7 @@ public class LendingServiceImpl implements LendingService {
             if (existingLendingOptional.isPresent()) {
                 Lending existingLending = existingLendingOptional.get();
                 if (updatedLendingData != null && existingLending.getLendingId() == lendingId) {
+                    // Update the properties of the existing Lending entity
                     existingLending.setDate(updatedLendingData.getDate());
                     existingLending.setEstimatedReturnDate(updatedLendingData.getEstimatedReturnDate());
                     existingLending.setReceived(updatedLendingData.isReceived());
@@ -69,7 +69,10 @@ public class LendingServiceImpl implements LendingService {
                     existingLending.setInventory(updatedLendingData.getInventory());
                     existingLending.setBorrower(updatedLendingData.getBorrower());
                     existingLending.setLender(updatedLendingData.getLender());
-                    lendingRepo.save(existingLending);
+
+                    // Save the updated Lending entity
+                    Lending updatedLending = lendingRepo.save(existingLending);
+                    log.info("Lending with id: {} updated successfully: {}", lendingId, updatedLending);
                 } else {
                     throw new IllegalArgumentException("Invalid lending_id or data");
                 }
@@ -77,7 +80,7 @@ public class LendingServiceImpl implements LendingService {
                 throw new NoSuchElementException("Lending not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while updating lending with ID: {}", lendingId, e);
+            log.error("Error occurred while updating lending with ID: {}", lendingId, e);
             throw e;
         }
     }
@@ -88,11 +91,12 @@ public class LendingServiceImpl implements LendingService {
             Optional<Lending> existingLendingOptional = lendingRepo.findById(lendingId);
             if (existingLendingOptional.isPresent()) {
                 lendingRepo.deleteById(lendingId);
+                log.info("Lending with ID {} deleted successfully", lendingId);
             } else {
                 throw new NoSuchElementException("Lending not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while deleting lending with ID: {}", lendingId, e);
+            log.error("Error occurred while deleting lending with ID: {}", lendingId, e);
             throw e;
         }
     }

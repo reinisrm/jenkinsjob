@@ -19,37 +19,46 @@ import java.util.Optional;
 @RequestMapping("/person")
 public class PersonController {
 
-    private final Logger logger = LoggerFactory.getLogger(PersonController.class);
+    private final Logger log = LoggerFactory.getLogger(PersonController.class);
 
     @Autowired
     PersonServiceImpl personService;
 
     @GetMapping("/")
     public String showAllPerson(Model model) {
+        log.info("Get person list");
         try {
             List<Person> persons = personService.getAll();
+            log.info("Person list size: {}", persons.size());
             model.addAttribute("persons", persons);
             return "show-all-person";
         } catch (Exception e) {
-            logger.error("Error occurred while fetching all persons", e);
+            log.error("Error occurred while fetching all persons", e);
             return "error";
         }
     }
 
     @GetMapping("/{personId}")
     public String showOnePerson(@PathVariable("personId") int personId, Model model) {
-        try {
-            Optional<Person> person = personService.getPersonById(personId);
+        log.info("Get person with id: {}", personId);
+        Optional<Person> person = personService.getPersonById(personId);
+
+        if(person.isPresent()) {
+            Person personEntity = person.get(); // Used for logging name+surname
+            String nameSurname = personEntity.getName() + " " + personEntity.getSurname(); // Same applies here
             model.addAttribute("person", person);
+            log.info("Received person: {}", nameSurname);
             return "show-one-person";
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching person with ID: {}", personId, e);
+        } else {
+            log.info("Person with id: {} not found", personId);
             return "error";
         }
     }
 
+
     @GetMapping("/create")
     public String createPersonForm(Model model) {
+        log.info("Creating new person");
         model.addAttribute("person", new Person());
         return "create-person";
     }
@@ -57,6 +66,7 @@ public class PersonController {
     @PostMapping("/create")
     public String createPerson(@Valid Person person, BindingResult result) {
         if (result.hasErrors()) {
+            log.error("Failed creating a new person, error: {}", result);
             return "create-person";
         }
 
@@ -69,9 +79,10 @@ public class PersonController {
             );
 
             personService.createPerson(temp);
+            log.info("Person created successfully: {}", temp);
             return "redirect:/person/";
         } catch (Exception e) {
-            logger.error("Error occurred while creating person", e);
+            log.error("Error occurred while creating person", e);
             return "error";
         }
     }
@@ -83,7 +94,7 @@ public class PersonController {
             model.addAttribute("person", person);
             return "person-update-page";
         } catch (Exception e) {
-            logger.error("Error occurred while preparing update form for person with ID: {}", personId, e);
+            log.error("Error occurred while preparing update form for person with ID: {}", personId, e);
             return "error";
         }
     }
@@ -91,27 +102,41 @@ public class PersonController {
     @PostMapping("/update/{personId}")
     public String updatePersonById(@PathVariable("personId") int personId, @Valid Person person,
                                    BindingResult result) {
+        if (personId <= 0) {
+            log.warn("The id can only be positive, negative value provided: {}", personId);
+            return "person-update-page";
+        }
+
         if (result.hasErrors()) {
+            log.warn("Error updating person: {}", result.getAllErrors());
             return "person-update-page";
         }
 
         try {
             personService.updatePersonById(personId, person);
+            log.info("Person with id: {} has been updated", personId);
             return "redirect:/person/{personId}";
         } catch (Exception e) {
-            logger.error("Error occurred while updating person with ID: {}", personId, e);
+            log.error("Error occurred while updating person with ID: {}", personId, e);
             return "error";
         }
     }
 
     @PostMapping("/delete/{personId}")
     public String deletePersonById(@PathVariable("personId") int personId) {
-        try {
-            personService.deletePersonById(personId);
-            return "redirect:/person/";
-        } catch (Exception e) {
-            logger.error("Error occurred while deleting person with ID: {}", personId, e);
-            return "error";
+
+        if (personId <= 0) {
+            log.warn("The id can only be positive, negative value provided: {}", personId);
+            return "show-one-person"; //TODO check if endpoint=correct
         }
+        Optional<Person> person = personService.getPersonById(personId);
+        if (!person.isPresent()) {
+            log.warn("Person with id: {} for delete is not found", personId);
+            return "show-one-person"; //TODO same here
+        }
+
+        personService.deletePersonById(personId);
+        log.info("Person with id: {} is deleted", personId);
+        return "redirect:/person/";
     }
 }

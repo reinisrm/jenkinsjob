@@ -29,7 +29,7 @@ public class InventorySystemApplication {
 	public PasswordEncoder passwordEncoderSimple() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
-	@Bean //Calls function when system runs
+	//@Bean //Calls function when system runs
 	public CommandLineRunner testModel(
 			AuthorityRepo authorityRepo,
 			UserRepo userRepo,

@@ -3,6 +3,7 @@ package com.example.InventorySystem.services.impl;
 import com.example.InventorySystem.models.Inventory;
 import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.repos.InventoryRepo;
+import com.example.InventorySystem.services.LendingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,30 +17,30 @@ import java.util.Optional;
 @Service
 public class InventoryServiceImpl implements InventoryService {
 
-    private final Logger logger = LoggerFactory.getLogger(InventoryServiceImpl.class);
+    private final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
 
     @Autowired
     private InventoryRepo inventoryRepo;
 
+    @Autowired
+    private LendingService lendingService;
+
 
     @Override
     public List<Inventory> getAll() {
-        try {
-            return (List<Inventory>) inventoryRepo.findAll();
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching all inventories", e);
-            throw e;
-        }
+        List<Inventory> inventoryList = inventoryRepo.findAll();
+        return inventoryList;
     }
 
     @Override
     public Optional<Inventory> getInventoryById(int inventoryId) {
-        try {
-            return inventoryRepo.findById(inventoryId);
-        } catch (Exception e) {
-            logger.error("Error occurred while fetching inventory with ID: {}", inventoryId, e);
-            throw e;
+        Optional<Inventory> inventoryOptional = inventoryRepo.findById(inventoryId);
+        if (inventoryOptional.isEmpty()) {
+            log.warn("Inventory with id: {} is not found", inventoryId);
+        } else {
+            log.info("Inventory found with id: {}", inventoryId);
         }
+        return inventoryOptional;
     }
 
     @Override
@@ -47,11 +48,12 @@ public class InventoryServiceImpl implements InventoryService {
         try {
             if (inventory != null && inventory.getInventoryId() == 0) {
                 inventoryRepo.save(inventory);
+                log.info("Inventory created successfully: {}", inventory);
             } else {
                 throw new IllegalArgumentException("Invalid data or inventory_id already exists");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while creating inventory", e);
+            log.error("Error occurred while creating inventory", e);
             throw e;
         }
     }
@@ -63,29 +65,27 @@ public class InventoryServiceImpl implements InventoryService {
             if (existingInventoryOptional.isPresent()) {
                 Inventory existingInventory = existingInventoryOptional.get();
 
-                // Remove existingInventory from the lending list of associated Lending entities
-                for (Lending lending : existingInventory.getLending()) {
-                    lending.setInventory(null);
-                }
-
-                // Update existingInventory properties
+                // update existingInventory properties
                 existingInventory.setDevice(updatedInventoryData.getDevice());
                 existingInventory.setInventoryNumber(updatedInventoryData.getInventoryNumber());
                 existingInventory.setRoom(updatedInventoryData.getRoom());
                 existingInventory.setCabinet(updatedInventoryData.getCabinet());
 
-                // Save the updated Inventory
-                inventoryRepo.save(existingInventory);
+                // save the updated Inventory
+                Inventory updatedInventory = inventoryRepo.save(existingInventory);
 
-                // Update references in the associated Lending entities
-                for (Lending lending : existingInventory.getLending()) {
-                    lending.setInventory(existingInventory);
+                // update references in the associated Lending entities
+                for (Lending lending : updatedInventory.getLending()) {
+                    lending.setInventory(updatedInventory);
+                    lendingService.updateLending(lending.getLendingId(), lending);
                 }
+
+                log.info("Inventory with ID {} updated successfully: {}", inventoryId, updatedInventory);
             } else {
                 throw new NoSuchElementException("Inventory not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while updating inventory with ID: {}", inventoryId, e);
+            log.error("Error occurred while updating inventory with ID: {}", inventoryId, e);
             throw e;
         }
     }
@@ -97,17 +97,18 @@ public class InventoryServiceImpl implements InventoryService {
             if (existingInventoryOptional.isPresent()) {
                 Inventory existingInventory = existingInventoryOptional.get();
 
-                // Set the associated inventories in lendings to null
+                // set the associated inventories in lendings to null
                 for (Lending lending : existingInventory.getLending()) {
                     lending.setInventory(null);
                 }
 
                 inventoryRepo.deleteById(inventoryId);
+                log.info("Inventory with id: {} deleted successfully", inventoryId);
             } else {
                 throw new NoSuchElementException("Inventory not found");
             }
         } catch (Exception e) {
-            logger.error("Error occurred while deleting inventory with ID: {}", inventoryId, e);
+            log.error("Error occurred while deleting inventory with ID: {}", inventoryId, e);
             throw e;
         }
     }
