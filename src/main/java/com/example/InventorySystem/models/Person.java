@@ -32,6 +32,10 @@ public class Person {
     @OneToMany(mappedBy = "lender")
     private List<Lending> lending;
 
+    @OneToOne
+    @JoinColumn(name = "user_id", referencedColumnName = "user_id")
+    private User user;
+
     public Person(String name, String surname, String phoneNumber, String courseName) {
         this.name = name;
         this.surname = surname;

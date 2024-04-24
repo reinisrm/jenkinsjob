@@ -1,6 +1,8 @@
 package com.example.InventorySystem.controllers;
 
+import com.example.InventorySystem.config.UserDetailsManagerImpl;
 import com.example.InventorySystem.models.Person;
+import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.services.impl.PersonServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +25,9 @@ public class PersonController {
 
     @Autowired
     PersonServiceImpl personService;
+
+    @Autowired
+    UserDetailsManagerImpl userDetailsManager;
 
     @GetMapping("/")
     public String showAllPerson(Model model) {
@@ -59,27 +64,22 @@ public class PersonController {
     @GetMapping("/create")
     public String createPersonForm(Model model) {
         log.info("Creating new person");
+        List<User> users = userDetailsManager.allUsers();
         model.addAttribute("person", new Person());
+        model.addAttribute("users", users);
         return "create-person";
     }
 
     @PostMapping("/create")
-    public String createPerson(@Valid Person person, BindingResult result) {
+    public String createPerson(@Valid Person person, BindingResult result, @RequestParam int userId) {
         if (result.hasErrors()) {
             log.error("Failed creating a new person, error: {}", result);
             return "create-person";
         }
 
         try {
-            Person temp = new Person(
-                    person.getName(),
-                    person.getSurname(),
-                    person.getPhoneNumber(),
-                    person.getCourseName()
-            );
-
-            personService.createPerson(temp);
-            log.info("Person created successfully: {}", temp);
+            personService.createPerson(person, userId);
+            log.info("Person created successfully with user id: {}", userId);
             return "redirect:/person/";
         } catch (Exception e) {
             log.error("Error occurred while creating person", e);

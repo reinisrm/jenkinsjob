@@ -47,6 +47,8 @@ public class InventorySystemApplication {
 				userRepo.save(user1);
 				User user2 = new User("Reinis", passwordEncoderSimple().encode("321"));
 				userRepo.save(user2);
+				User user3 = new User("testcreatepersonusername", passwordEncoderSimple().encode("333"));
+				userRepo.save(user3);
 
 				Authority auth1 = new Authority("ADMIN");
 				//Authority auth2 = new Authority("USER"); Will be used in the future
@@ -67,8 +69,10 @@ public class InventorySystemApplication {
 				inventoryRepo.save(inv2);
 
 				//Person
-				Person pers1 = new Person("Janis", "Ozols", "+37129774394", "2PS");
-				Person pers2 = new Person("Didzis", "Lapa", "+37125554320", "1PS");
+				Person pers1 = new Person("Vairis", "Caune", "+37129774394", "2PS");
+				pers1.setUser(user1);
+				Person pers2 = new Person("Reinis", "Malitis", "+37125554320", "1PS");
+				pers2.setUser(user2);
 				personRepo.save(pers1);
 				personRepo.save(pers2);
 

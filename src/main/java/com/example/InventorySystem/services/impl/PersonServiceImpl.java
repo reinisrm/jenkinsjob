@@ -2,7 +2,9 @@ package com.example.InventorySystem.services.impl;
 
 import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.models.Person;
+import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.repos.PersonRepo;
+import com.example.InventorySystem.repos.UserRepo;
 import com.example.InventorySystem.services.LendingService;
 import com.example.InventorySystem.services.PersonService;
 import org.slf4j.Logger;
@@ -25,6 +27,9 @@ public class PersonServiceImpl implements PersonService {
     @Autowired
     private LendingService lendingService;
 
+    @Autowired
+    private UserRepo userRepo;
+
     @Override
     public List<Person> getAll() {
         List<Person> personList = personRepo.findAll();
@@ -43,11 +48,13 @@ public class PersonServiceImpl implements PersonService {
     }
 
     @Override
-    public void createPerson(Person person) {
+    public void createPerson(Person person, int userId) {
         try {
             if (person != null && person.getPersonId() == 0) {
+                Optional<User> userOptional = userRepo.findById(userId);
+                userOptional.ifPresent(person::setUser); // associating the User with the Person
                 personRepo.save(person);
-                log.info("Person created successfully: {}", person);
+                log.info("Person created successfully with associated user: {}", person);
             } else {
                 throw new IllegalArgumentException("Invalid person data or person_id already exists");
             }

@@ -118,6 +118,7 @@
                 <th>Surname</th>
                 <th>Phone Number</th>
                 <th>Course Name</th>
+                <th>Username</th>
                 <th>Actions</th>
             </tr>
             <tr>
@@ -126,6 +127,7 @@
                 <td th:text="${#vars.person.get().surname}"></td>
                 <td th:text="${#vars.person.get().phoneNumber}"></td>
                 <td th:text="${#vars.person.get().courseName}"></td>
+                <td th:text="${#vars.person.get().user.username}"></td>
                 <td>
                     <!-- Update Button -->
                     <div class="btn-group">
