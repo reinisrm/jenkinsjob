@@ -50,6 +50,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/challenges/").hasAnyAuthority("ADMIN", "USER")
+                        .requestMatchers("/challenges/{postId}").hasAnyAuthority("ADMIN", "USER")
+                        .requestMatchers("/challenges/create").hasAuthority("ADMIN")
+                        .requestMatchers("/challenges/update/**").hasAuthority("ADMIN")
+                        .requestMatchers("/challenges/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/lending").hasAuthority("ADMIN") // retrieve
                         .requestMatchers("/lending/**").hasAuthority("ADMIN") // retrieve one
                         .requestMatchers("/lending/delete/**").hasAuthority("ADMIN") // delete
@@ -66,7 +71,7 @@ public class SecurityConfig {
                         .requestMatchers("/inventory/create").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/update/**").hasAuthority("ADMIN"))
                         .formLogin(login -> login
-                            .defaultSuccessUrl("/lending/")  // Redirect after successful login
+                            .defaultSuccessUrl("/challenges/")  // Redirect after successful login
                             .permitAll())
                         .logout(logout -> logout
                              .permitAll());

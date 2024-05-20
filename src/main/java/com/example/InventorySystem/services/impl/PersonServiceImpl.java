@@ -71,23 +71,24 @@ public class PersonServiceImpl implements PersonService {
             if (existingPersonOptional.isPresent()) {
                 Person existingPerson = existingPersonOptional.get();
 
-                // update existingPerson properties
                 existingPerson.setName(updatedPersonData.getName());
                 existingPerson.setSurname(updatedPersonData.getSurname());
                 existingPerson.setPhoneNumber(updatedPersonData.getPhoneNumber());
                 existingPerson.setCourseName(updatedPersonData.getCourseName());
 
-                // save the updated Person
                 Person updatedPerson = personRepo.save(existingPerson);
 
-                // update references in the associated Lending entities (as borrower and lender)
-                for (Lending lending : updatedPerson.getBorrowing()) {
-                    lending.setBorrower(updatedPerson);
-                    lendingService.updateLending(lending.getLendingId(), lending);
+                if (updatedPerson.getBorrowing() != null) {
+                    for (Lending lending : updatedPerson.getBorrowing()) {
+                        lending.setBorrower(updatedPerson);
+                        lendingService.updateLending(lending.getLendingId(), lending);
+                    }
                 }
-                for (Lending lending : updatedPerson.getLending()) {
-                    lending.setLender(updatedPerson);
-                    lendingService.updateLending(lending.getLendingId(), lending);
+                if (updatedPerson.getLending() != null) {
+                    for (Lending lending : updatedPerson.getLending()) {
+                        lending.setLender(updatedPerson);
+                        lendingService.updateLending(lending.getLendingId(), lending);
+                    }
                 }
 
                 log.info("Person with id: {} updated successfully: {}", personId, updatedPerson);
@@ -99,6 +100,7 @@ public class PersonServiceImpl implements PersonService {
             throw e;
         }
     }
+
 
     @Override
     public void deletePersonById(int personId) {

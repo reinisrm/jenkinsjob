@@ -41,7 +41,6 @@ public class ChallengePostServiceImpl implements ChallengePostService {
     }
 
     @Override
-    @Transactional
     public ChallengePost createPost(ChallengePost post, int userId) {
         log.info("Creating challenge post for user id: {}", userId);
         User user = userRepo.findById(userId)

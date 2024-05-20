@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Create Challenge Post</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background-color: #333;
+        }
+
+        .navbar {
+            background-color: #222;
+            overflow: hidden;
+        }
+
+        .navbar a {
+            float: left;
+            color: #fff;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+            font-size: 16px;
+        }
+
+        .navbar a:hover {
+            background-color: #4CAF50;
+            color: #fff;
+        }
+
+        .navbar .logout {
+            float: right;
+            margin-right: 60px;
+        }
+
+        .content {
+            padding: 20px;
+        }
+
+        .container {
+            background-color: #444;
+            color: #fff;
+            padding: 20px;
+            margin: 20px auto;
+            border-radius: 8px;
+            max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            border: 2px solid #000;
+        }
+
+        h2 {
+            font-size: 1.8em;
+            margin-bottom: 10px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        input[type="text"], textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: none;
+            border-radius: 4px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #4CAF50;
+            color: #fff;
+            text-decoration: none;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .btn:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+<!-- Navigation bar -->
+<div class="navbar">
+    <a href="/inventory/">Inventory</a>
+    <a href="/person/">Person</a>
+    <a href="/lending/">Lending</a>
+    <a href="/challenges/">Challenges</a>
+    <a class="logout" href="http://localhost:8080/logout">Log out</a>
+</div>
+
+<!-- Main content -->
+<div class="content">
+    <div class="container">
+        <h2>Create New Challenge Post</h2>
+        <form th:action="@{/challenges/create}" method="post">
+            <label for="title">Title</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="text">Text</label>
+            <textarea id="text" name="text" rows="5" required></textarea>
+
+            <label for="imageUrl">Image URL</label>
+            <input type="text" id="imageUrl" name="imageUrl">
+
+            <button type="submit" class="btn">Create Post</button>
+        </form>
+    </div>
+</div>
+</body>
+</html>

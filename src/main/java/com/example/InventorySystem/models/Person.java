@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 @Entity
 @Getter
@@ -27,10 +28,10 @@ public class Person {
     private String courseName;
 
     @OneToMany(mappedBy = "borrower")
-    private List<Lending> borrowing;
+    private List<Lending> borrowing = new ArrayList<>();
 
     @OneToMany(mappedBy = "lender")
-    private List<Lending> lending;
+    private List<Lending> lending = new ArrayList<>();
 
     @OneToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -41,5 +42,7 @@ public class Person {
         this.surname = surname;
         this.phoneNumber = phoneNumber;
         this.courseName = courseName;
+        this.borrowing = new ArrayList<>();
+        this.lending = new ArrayList<>();
     }
 }

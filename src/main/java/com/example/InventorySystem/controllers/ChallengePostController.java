@@ -1,10 +1,15 @@
 package com.example.InventorySystem.controllers;
 
+import com.example.InventorySystem.config.MyUserDetails;
+import com.example.InventorySystem.config.UserDetailsManagerImpl;
 import com.example.InventorySystem.models.ChallengePost;
+import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.services.impl.ChallengePostServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -18,10 +23,12 @@ public class ChallengePostController {
 
     private final Logger log = LoggerFactory.getLogger(ChallengePostController.class);
     private final ChallengePostServiceImpl challengePostService;
+    private final UserDetailsManagerImpl userDetailsManager;
 
     @Autowired
-    public ChallengePostController(ChallengePostServiceImpl challengePostService) {
+    public ChallengePostController(ChallengePostServiceImpl challengePostService, UserDetailsManagerImpl userDetailsManager) {
         this.challengePostService = challengePostService;
+        this.userDetailsManager = userDetailsManager;
     }
 
     @GetMapping("/")
@@ -48,10 +55,11 @@ public class ChallengePostController {
     }
 
     @PostMapping("/create")
-    public String createPost(@ModelAttribute ChallengePost challengePost, @RequestParam int userId) {
+    public String createPost(@ModelAttribute ChallengePost challengePost, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             log.info("Attempting to create a new challenge post");
-            challengePostService.createPost(challengePost, userId);
+            User user = ((MyUserDetails) userDetails).getUser();
+            challengePostService.createPost(challengePost, user.getUserId());
             log.info("Challenge post created successfully");
             return "redirect:/challenges/";
         } catch (Exception e) {

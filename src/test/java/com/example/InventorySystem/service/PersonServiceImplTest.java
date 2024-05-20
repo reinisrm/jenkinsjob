@@ -84,12 +84,17 @@ class PersonServiceImplTest {
     }
 
     @Test
-    void testUpdatePersonById_ExistingId() { //TODO fix this
+    void testUpdatePersonById_ExistingId() {
         int personId = 1;
         Person existingPerson = new Person();
+        existingPerson.setBorrowing(new ArrayList<>());
+        existingPerson.setLending(new ArrayList<>());
+
         Person updatedPersonData = new Person();
         updatedPersonData.setName("John");
+
         when(personRepo.findById(personId)).thenReturn(Optional.of(existingPerson));
+        when(personRepo.save(any(Person.class))).thenReturn(existingPerson);
 
         personService.updatePersonById(personId, updatedPersonData);
 
