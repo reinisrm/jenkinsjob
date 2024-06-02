@@ -13,7 +13,6 @@ import java.time.LocalDateTime;
 @Setter
 @Table(name = "challenge_post")
 @NoArgsConstructor
-@AllArgsConstructor
 public class ChallengePost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -22,11 +21,11 @@ public class ChallengePost {
     @Column(length = 255)
     private String title;
 
-    @Column(length = 5000)
+    @Column(length = 5000, columnDefinition = "LONGTEXT")
     private String text;
 
-    @Column
-    private String imageUrl;
+    @Transient
+    private String formattedDate;
 
     @ManyToOne
     @JoinColumn(name = "user_id", referencedColumnName = "user_id")
@@ -40,10 +39,9 @@ public class ChallengePost {
         createdDate = LocalDateTime.now();
     }
 
-    public ChallengePost(String title, String text, String imageUrl, User user, LocalDateTime createdDate) {
+    public ChallengePost(String title, String text, User user, LocalDateTime createdDate) {
         this.title = title;
         this.text = text;
-        this.imageUrl = imageUrl;
         this.user = user;
         this.createdDate = createdDate;
     }

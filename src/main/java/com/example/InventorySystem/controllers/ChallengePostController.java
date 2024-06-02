@@ -1,13 +1,13 @@
 package com.example.InventorySystem.controllers;
 
 import com.example.InventorySystem.config.MyUserDetails;
-import com.example.InventorySystem.config.UserDetailsManagerImpl;
 import com.example.InventorySystem.models.ChallengePost;
 import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.services.impl.ChallengePostServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
@@ -23,12 +23,10 @@ public class ChallengePostController {
 
     private final Logger log = LoggerFactory.getLogger(ChallengePostController.class);
     private final ChallengePostServiceImpl challengePostService;
-    private final UserDetailsManagerImpl userDetailsManager;
 
     @Autowired
-    public ChallengePostController(ChallengePostServiceImpl challengePostService, UserDetailsManagerImpl userDetailsManager) {
+    public ChallengePostController(ChallengePostServiceImpl challengePostService) {
         this.challengePostService = challengePostService;
-        this.userDetailsManager = userDetailsManager;
     }
 
     @GetMapping("/")
@@ -100,5 +98,12 @@ public class ChallengePostController {
             log.error("Error deleting challenge post: {}", e.getMessage(), e);
             return "error";
         }
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleNoSuchElementException(NoSuchElementException ex, Model model) {
+        model.addAttribute("errorMessage", ex.getMessage());
+        return "error";
     }
 }

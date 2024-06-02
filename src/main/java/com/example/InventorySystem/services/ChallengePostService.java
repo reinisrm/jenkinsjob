@@ -1,6 +1,9 @@
 package com.example.InventorySystem.services;
 
 import com.example.InventorySystem.models.ChallengePost;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
@@ -10,4 +13,5 @@ public interface ChallengePostService {
     ChallengePost createPost(ChallengePost post, int userId);
     ChallengePost updatePost(int postId, ChallengePost post);
     void deletePostById(int postId);
+
 }

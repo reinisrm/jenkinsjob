@@ -16,13 +16,10 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-
 	//@Bean
 	//public WebSecurityCustomizer webSecurityCustomizer() {
 	//	return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/h2-console/**"));
 	//}
-
-
 
     //@Bean
     public UserDetailsManagerImpl userDetailsManager() {
@@ -51,7 +48,7 @@ public class SecurityConfig {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
                         .requestMatchers("/challenges/").hasAnyAuthority("ADMIN", "USER")
-                        .requestMatchers("/challenges/{postId}").hasAnyAuthority("ADMIN", "USER")
+                        .requestMatchers("/challenges/{postId}").hasAuthority("ADMIN")
                         .requestMatchers("/challenges/create").hasAuthority("ADMIN")
                         .requestMatchers("/challenges/update/**").hasAuthority("ADMIN")
                         .requestMatchers("/challenges/delete/**").hasAuthority("ADMIN")
@@ -65,7 +62,7 @@ public class SecurityConfig {
                         .requestMatchers("/person/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/person/create").hasAuthority("ADMIN")
                         .requestMatchers("/person/update/**").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory").hasAnyAuthority("ADMIN", "USER")
                         .requestMatchers("/inventory/**").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/create").hasAuthority("ADMIN")
@@ -76,22 +73,6 @@ public class SecurityConfig {
                         .logout(logout -> logout
                              .permitAll());
 
-
-
-
-
-
-
         return http.build();
     }
-
-
-
-
-
-
-
-
-
 }
-

@@ -89,7 +89,7 @@ public class InventorySystemApplication {
 				lendingRepo.save(lend2);
 
 				//Challenge
-				ChallengePost chal1 = new ChallengePost("Test Title", "Sveiki mani sauc Reinis un es velos iztestet vai posta teksts strada, ka es to veletos", "https://i.imgur.com/fAeYqaj.jpeg", user1, LocalDateTime.now());
+				ChallengePost chal1 = new ChallengePost("Test Title", "Test text", user1, LocalDateTime.now());
 				challengePostRepo.save(chal1);
 			}
 

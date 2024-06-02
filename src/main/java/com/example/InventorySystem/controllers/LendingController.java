@@ -3,9 +3,14 @@ package com.example.InventorySystem.controllers;
 import com.example.InventorySystem.models.Inventory;
 import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.models.Person;
+import com.example.InventorySystem.services.impl.AcceptanceActServiceImpl;
 import com.example.InventorySystem.services.impl.InventoryServiceImpl;
 import com.example.InventorySystem.services.impl.PersonServiceImpl;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.InputStreamResource;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -16,7 +21,10 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 @Controller
@@ -33,6 +41,9 @@ public class LendingController {
 
     @Autowired
     PersonServiceImpl personService;
+
+    @Autowired
+    AcceptanceActServiceImpl acceptanceActService;
 
     @GetMapping("/")
     public String showAllLending(Model model) {
@@ -158,8 +169,31 @@ public class LendingController {
         lendingService.deleteLendingById(lendingId);
         log.info("Lending with id: {} is deleted", lendingId);
         return "redirect:/lending/";
-
-
-
     }
+
+    @GetMapping("/generateAcceptanceAct/{lendingId}")
+    public ResponseEntity<InputStreamResource> generateAcceptanceAct(@PathVariable("lendingId") int lendingId) {
+        try {
+            Lending lending = lendingService.getLendingById(lendingId)
+                    .orElseThrow(() -> new NoSuchElementException("Lending not found with id: " + lendingId));
+            byte[] document = acceptanceActService.generateAcceptanceAct(lending);
+
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(document);
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=acceptance_act.docx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new InputStreamResource(inputStream));
+        } catch (IOException e) {
+            log.error("Error generating acceptance act for lending id: {}", lendingId, e);
+            return ResponseEntity.status(500).build();
+        } catch (NoSuchElementException e) {
+            log.error("Lending not found with id: {}", lendingId, e);
+            return ResponseEntity.notFound().build();
+        }
+    }
+
 }
