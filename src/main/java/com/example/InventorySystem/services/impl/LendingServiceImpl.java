@@ -1,7 +1,6 @@
 package com.example.InventorySystem.services.impl;
 
 import com.example.InventorySystem.models.Lending;
-import com.example.InventorySystem.models.Person;
 import com.example.InventorySystem.repos.LendingRepo;
 import com.example.InventorySystem.services.LendingService;
 import org.slf4j.Logger;
@@ -9,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -23,19 +23,18 @@ public class LendingServiceImpl implements LendingService {
 
     @Override
     public List<Lending> getAll() {
-        List<Lending> lendingList = lendingRepo.findAll();
-        return lendingList;
+        return lendingRepo.findAll();
     }
 
     @Override
     public Optional<Lending> getLendingById(int lendingId) {
-        Optional<Lending> personOptional = lendingRepo.findById(lendingId);
-        if (personOptional.isEmpty()) {
+        Optional<Lending> lendingOptional = lendingRepo.findById(lendingId);
+        if (lendingOptional.isEmpty()) {
             log.warn("Lending with id: {} is not found", lendingId);
         } else {
             log.info("Lending found with id: {}", lendingId);
         }
-        return personOptional;
+        return lendingOptional;
     }
 
     @Override
@@ -60,7 +59,6 @@ public class LendingServiceImpl implements LendingService {
             if (existingLendingOptional.isPresent()) {
                 Lending existingLending = existingLendingOptional.get();
                 if (updatedLendingData != null && existingLending.getLendingId() == lendingId) {
-                    // Update the properties of the existing Lending entity
                     existingLending.setDate(updatedLendingData.getDate());
                     existingLending.setEstimatedReturnDate(updatedLendingData.getEstimatedReturnDate());
                     existingLending.setReceived(updatedLendingData.isReceived());
@@ -69,8 +67,6 @@ public class LendingServiceImpl implements LendingService {
                     existingLending.setInventory(updatedLendingData.getInventory());
                     existingLending.setBorrower(updatedLendingData.getBorrower());
                     existingLending.setLender(updatedLendingData.getLender());
-
-                    // Save the updated Lending entity
                     Lending updatedLending = lendingRepo.save(existingLending);
                     log.info("Lending with id: {} updated successfully: {}", lendingId, updatedLending);
                 } else {
@@ -99,5 +95,10 @@ public class LendingServiceImpl implements LendingService {
             log.error("Error occurred while deleting lending with ID: {}", lendingId, e);
             throw e;
         }
+    }
+
+    @Override
+    public List<Lending> findLendingsByDateRange(LocalDate startDate, LocalDate endDate) {
+        return lendingRepo.findByDateBetween(startDate, endDate);
     }
 }

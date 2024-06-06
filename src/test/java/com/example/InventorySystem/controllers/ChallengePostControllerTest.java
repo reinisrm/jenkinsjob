@@ -1,6 +1,8 @@
 package com.example.InventorySystem.controllers;
 
+import com.example.InventorySystem.config.MyUserDetails;
 import com.example.InventorySystem.models.ChallengePost;
+import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.services.impl.ChallengePostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -86,21 +88,26 @@ class ChallengePostControllerTest {
     }
 
     @Test
-    void testCreatePostSuccess() throws Exception { //todo fix this
+    void testCreatePostSuccess() throws Exception { //TODO fix this
         ChallengePost challengePost = setUpCreateChallengePost();
         challengePost.setId(1);
 
-        when(challengePostService.createPost(any(ChallengePost.class), anyInt())).thenReturn(challengePost);
+        // mock auth and usedetails
+        MyUserDetails userDetails = mock(MyUserDetails.class);
+        User mockUser = new User("testUser", "password");
+        mockUser.setUserId(1);
+        when(userDetails.getUser()).thenReturn(mockUser);
 
         mockMvc.perform(post("/challenges/create")
                         .param("title", challengePost.getTitle())
                         .param("text", challengePost.getText())
-                        .param("userId", "1"))
+                        .principal(() -> "testUser"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/challenges/"));
 
-        verify(challengePostService).createPost(any(ChallengePost.class), anyInt());
+        verify(challengePostService).createPost(any(ChallengePost.class), eq(1));
     }
+
 
     @Test
     void testUpdatePostSuccess() throws Exception {

@@ -3,9 +3,7 @@ package com.example.InventorySystem.controllers;
 import com.example.InventorySystem.models.Inventory;
 import com.example.InventorySystem.models.Lending;
 import com.example.InventorySystem.models.Person;
-import com.example.InventorySystem.services.impl.AcceptanceActServiceImpl;
-import com.example.InventorySystem.services.impl.InventoryServiceImpl;
-import com.example.InventorySystem.services.impl.PersonServiceImpl;
+import com.example.InventorySystem.services.impl.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
@@ -15,7 +13,6 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import com.example.InventorySystem.services.impl.LendingServiceImpl;
 import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.slf4j.Logger;
@@ -44,6 +41,9 @@ public class LendingController {
 
     @Autowired
     AcceptanceActServiceImpl acceptanceActService;
+
+    @Autowired
+    InventoryReportServiceImpl invReportService;
 
     @GetMapping("/")
     public String showAllLending(Model model) {
@@ -193,6 +193,25 @@ public class LendingController {
         } catch (NoSuchElementException e) {
             log.error("Lending not found with id: {}", lendingId, e);
             return ResponseEntity.notFound().build();
+        }
+    }
+
+    @GetMapping("/generateInventoryReport")
+    public ResponseEntity<InputStreamResource> generateInventoryReport() {
+        try {
+            byte[] report = invReportService.generateInventoryReport();
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(report);
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.add("Content-Disposition", "attachment; filename=inventory_report.xlsx");
+
+            return ResponseEntity
+                    .ok()
+                    .headers(headers)
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(new InputStreamResource(inputStream));
+        } catch (IOException e) {
+            return ResponseEntity.status(500).build();
         }
     }
 

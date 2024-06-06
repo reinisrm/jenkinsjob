@@ -44,9 +44,9 @@ public class InventorySystemApplication {
 			@Override
 			public void run(String... args) throws Exception {
 			//Setting roles to users
-				User user1 = new User("Vairis", passwordEncoderSimple().encode("123"));
+				User user1 = new User("VairisCaune", passwordEncoderSimple().encode("123"));
 				userRepo.save(user1);
-				User user2 = new User("Reinis", passwordEncoderSimple().encode("321"));
+				User user2 = new User("ReinisMalitis", passwordEncoderSimple().encode("321"));
 				userRepo.save(user2);
 				User user3 = new User("User", passwordEncoderSimple().encode("333"));
 				userRepo.save(user3);
