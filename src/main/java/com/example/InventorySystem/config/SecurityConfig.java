@@ -17,13 +17,6 @@ import org.springframework.security.web.SecurityFilterChain;
 public class SecurityConfig {
 
 
-	//@Bean
-	//public WebSecurityCustomizer webSecurityCustomizer() {
-	//	return (web) -> web.ignoring().requestMatchers(new AntPathRequestMatcher("/h2-console/**"));
-	//}
-
-
-
     //@Bean
     public UserDetailsManagerImpl userDetailsManager() {
         UserDetailsManagerImpl manager = new UserDetailsManagerImpl();
@@ -50,6 +43,11 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
+                        .requestMatchers("/challenges/").hasAnyAuthority("ADMIN", "USER")
+                        .requestMatchers("/challenges/{postId}").hasAuthority("ADMIN")
+                        .requestMatchers("/challenges/create").hasAuthority("ADMIN")
+                        .requestMatchers("/challenges/update/**").hasAuthority("ADMIN")
+                        .requestMatchers("/challenges/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/lending").hasAuthority("ADMIN") // retrieve
                         .requestMatchers("/lending/**").hasAuthority("ADMIN") // retrieve one
                         .requestMatchers("/lending/delete/**").hasAuthority("ADMIN") // delete
@@ -60,33 +58,17 @@ public class SecurityConfig {
                         .requestMatchers("/person/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/person/create").hasAuthority("ADMIN")
                         .requestMatchers("/person/update/**").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory").hasAuthority("ADMIN")
+                        .requestMatchers("/inventory").hasAnyAuthority("ADMIN", "USER")
                         .requestMatchers("/inventory/**").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/delete/**").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/create").hasAuthority("ADMIN")
                         .requestMatchers("/inventory/update/**").hasAuthority("ADMIN"))
                         .formLogin(login -> login
-                            .defaultSuccessUrl("/lending/")  // Redirect after successful login
+                            .defaultSuccessUrl("/challenges/")  // Redirect after successful login
                             .permitAll())
                         .logout(logout -> logout
                              .permitAll());
 
-
-
-
-
-
-
         return http.build();
     }
-
-
-
-
-
-
-
-
-
 }
-

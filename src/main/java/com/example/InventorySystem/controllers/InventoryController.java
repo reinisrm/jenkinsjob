@@ -67,14 +67,8 @@ public class InventoryController {
         }
 
         try {
-            Inventory temp = new Inventory();
-            temp.setDevice(inventory.getDevice());
-            temp.setInventoryNumber(inventory.getInventoryNumber());
-            temp.setRoom(inventory.getRoom());
-            temp.setCabinet(inventory.getCabinet());
-
-            inventoryService.createInventory(temp);
-            log.info("Inventory created successfully: {}", temp);
+            inventoryService.createInventory(inventory);
+            log.info("Inventory created successfully: {}", inventory);
             return "redirect:/inventory/";
         } catch (Exception e) {
             log.error("Error occurred while creating inventory", e);

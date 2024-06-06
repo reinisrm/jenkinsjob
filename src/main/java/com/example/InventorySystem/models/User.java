@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 @Entity
 @Table(name = "user_table")
@@ -15,13 +16,20 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "user_id")
     private int userId;
-    @Column(name = "username")
+    @Column(name = "username", unique = true)
     private String username;
     @Column(name = "password")
     private String password;
 
     @ManyToMany(mappedBy = "users", fetch = FetchType.EAGER)
     private Collection<Authority> authorities = new ArrayList<>();
+
+
+    @OneToOne(mappedBy = "user")
+    private Person person;
+
+    @OneToMany(mappedBy = "user")
+    private List<ChallengePost> challengePosts;
 
     public Collection<Authority> getAuthorities() {
         return authorities;

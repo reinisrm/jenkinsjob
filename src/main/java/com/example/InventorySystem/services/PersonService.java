@@ -8,7 +8,7 @@ import java.util.Optional;
 
 public interface PersonService {
     List<Person> getAll();
-    void createPerson(Person person);
+    void createPerson(Person person, int userId);
     Optional<Person> getPersonById(int personId);
     void updatePersonById(int personId, Person updatedPersonData);
     void deletePersonById(int personId);

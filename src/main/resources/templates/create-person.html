@@ -72,6 +72,7 @@
 <body>
 <!-- Navigation bar -->
 <div class="navbar">
+    <a href="/challenges/">Challenges</a>
     <a href="/inventory/">Inventory</a>
     <a href="/person/">Person</a>
     <a href="/lending/">Lending</a>
@@ -97,6 +98,15 @@
             <div>
                 <label for="courseName">Course Name</label>
                 <input type="text" id="courseName" th:field="*{courseName}" name="courseName">
+            </div>
+            <div>
+                <label for="userId">User</label>
+                <select id="userId" name="userId" required>
+                    <option value="">Select a User</option>
+                    <th:block th:each="user : ${users}">
+                        <option th:value="${user.userId}" th:text="${user.username}">User</option>
+                    </th:block>
+                </select>
             </div>
 
             <button type="submit">Create New Person</button>

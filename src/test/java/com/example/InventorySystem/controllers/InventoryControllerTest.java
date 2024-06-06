@@ -20,6 +20,7 @@ import java.util.Optional;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -42,44 +43,51 @@ class InventoryControllerTest {
 
     private List<Inventory> inventoryList;
 
+    private Inventory setUpCreateInventory() {
+        return new Inventory("Laptop", "INV123", "Room1", "CabinetA");
+    }
+
     @BeforeEach
     void setUp() {
-        inventoryList = new ArrayList<>();
-        Inventory inventory1 = new Inventory("Laptop", "INV123", "Room1", "CabinetA");
-        Inventory inventory2 = new Inventory("Desktop", "INV456", "Room2", "CabinetB");
-        inventoryList.add(inventory1);
-        inventoryList.add(inventory2);
         mockMvc = MockMvcBuilders.standaloneSetup(inventoryController).build();
     }
 
     @Test
     void testShowAllInventory() {
-        when(inventoryService.getAll()).thenReturn(inventoryList);
+        List<Inventory> inventories = new ArrayList<>();
+        inventories.add(setUpCreateInventory());
+        when(inventoryService.getAll()).thenReturn(inventories);
 
         String viewName = inventoryController.showAllInventory(model);
 
-        verify(model).addAttribute(eq("inventories"), eq(inventoryList));
+        verify(model).addAttribute("inventories", inventories);
         assertEquals("show-all-inventory", viewName);
     }
 
     @Test
     void testShowOneInventory() throws Exception {
-        // Create a sample inventory
-        Inventory inventory = new Inventory();
+        Inventory inventory = setUpCreateInventory();
         inventory.setInventoryId(1);
-        inventory.setDevice("Sample Device");
-        inventory.setInventoryNumber("INV-123");
-        inventory.setRoom("Room A");
-        inventory.setCabinet("Cabinet B");
 
-        // Mock the service to return the sample inventory
-        when(inventoryService.getInventoryById(anyInt())).thenReturn(Optional.of(inventory));
+        when(inventoryService.getInventoryById(inventory.getInventoryId())).thenReturn(Optional.of(inventory));
 
-        // Perform the GET request and validate the model attribute
-        mockMvc.perform(get("/inventory/{inventoryId}", 1))
+        mockMvc.perform(get("/inventory/{inventoryId}", inventory.getInventoryId()))
                 .andExpect(status().isOk())
                 .andExpect(view().name("show-one-inventory"))
                 .andExpect(model().attribute("inventory", Optional.of(inventory)));
+    }
+
+    @Test
+    void testShowOneInventoryNonExistantId() throws Exception {
+        int nonExistantInventoryId = 999;
+        when(inventoryService.getInventoryById(nonExistantInventoryId)).thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/inventory/{inventoryId}", nonExistantInventoryId))
+                .andExpect(status().isOk())
+                .andExpect(view().name("error"));
+
+        verify(inventoryService).getInventoryById(nonExistantInventoryId);
+        verify(model, never()).addAttribute(eq("inventory"), any());
     }
 
     @Test
@@ -91,19 +99,23 @@ class InventoryControllerTest {
     }
 
     @Test
-    void testCreateInventorySuccess() {
-        Inventory inventory = new Inventory("Laptop", "INV123", "Room1", "CabinetA");
-        when(bindingResult.hasErrors()).thenReturn(false);
+    void testCreateInventorySuccess() throws Exception {
+        Inventory inventory = setUpCreateInventory();
 
-        String viewName = inventoryController.createInventory(inventory, bindingResult);
+        mockMvc.perform(post("/inventory/create")
+                        .param("device", inventory.getDevice())
+                        .param("inventoryNumber", inventory.getInventoryNumber())
+                        .param("room", inventory.getRoom())
+                        .param("cabinet", inventory.getCabinet()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/inventory/"));
 
-        assertEquals("redirect:/inventory/", viewName);
         verify(inventoryService).createInventory(any(Inventory.class));
     }
 
     @Test
     void testCreateInventoryValidationFailed() {
-        Inventory inventory = new Inventory();
+        Inventory inventory = setUpCreateInventory();
         when(bindingResult.hasErrors()).thenReturn(true);
 
         String viewName = inventoryController.createInventory(inventory, bindingResult);
@@ -113,35 +125,39 @@ class InventoryControllerTest {
 
     @Test
     void testShowUpdateForm() {
-        int inventoryId = 1;
-        Optional<Inventory> inventory = Optional.of(new Inventory());
-        when(inventoryService.getInventoryById(inventoryId)).thenReturn(inventory);
+        Inventory inventory = setUpCreateInventory();
+        inventory.setInventoryId(1);
+        when(inventoryService.getInventoryById(inventory.getInventoryId())).thenReturn(Optional.of(inventory));
 
-        String viewName = inventoryController.showUpdateForm(inventoryId, model);
+        String viewName = inventoryController.showUpdateForm(inventory.getInventoryId(), model);
 
-        verify(model).addAttribute("inventory", inventory.get());
-        verify(model).addAttribute("inventory_id", inventoryId);
+        verify(model).addAttribute("inventory", inventory);
         assertEquals("inventory-update-page", viewName);
     }
 
     @Test
     void testUpdateInventoryByIdValidationFailed() {
-        int inventoryId = 1;
-        Inventory updatedInventory = new Inventory();
+        Inventory inventory = setUpCreateInventory();
+        inventory.setInventoryId(1);
         when(bindingResult.hasErrors()).thenReturn(true);
 
-        String viewName = inventoryController.updateInventoryById(inventoryId, updatedInventory, bindingResult);
+        String viewName = inventoryController.updateInventoryById(inventory.getInventoryId(), inventory, bindingResult);
 
         assertEquals("inventory-update-page", viewName);
     }
 
     @Test
-    void testDeleteInventoryById() {
-        int inventoryId = 1;
+    void testDeleteInventoryById() throws Exception {
+        Inventory inventory = setUpCreateInventory();
+        inventory.setInventoryId(1);
+        when(inventoryService.getInventoryById(inventory.getInventoryId())).thenReturn(Optional.of(inventory));
 
-        String viewName = inventoryController.deleteInventoryById(inventoryId);
+        mockMvc.perform(post("/inventory/delete/{inventoryId}", inventory.getInventoryId()))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/inventory/"));
 
-        assertEquals("redirect:/inventory/", viewName);
-        verify(inventoryService).deleteInventoryById(inventoryId);
+        verify(inventoryService).deleteInventoryById(inventory.getInventoryId());
     }
+
 }
+

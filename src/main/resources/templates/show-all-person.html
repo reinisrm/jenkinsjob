@@ -130,6 +130,7 @@
 <body>
 <!-- Navigation bar -->
 <div class="navbar">
+    <a href="/challenges/">Challenges</a>
     <a href="/inventory/">Inventory</a>
     <a href="/person/">Person</a>
     <a href="/lending/">Lending</a>
@@ -145,6 +146,7 @@
                 <th onclick="sortTable(2)">Surname</th>
                 <th onclick="sortTable(3)">Phone Number</th>
                 <th onclick="sortTable(4)">Course Name</th>
+                <th>Username</th>
                 <th>Actions</th>
             </tr>
             <tr th:each="person : ${persons}">
@@ -153,6 +155,7 @@
                 <td th:text="${person.surname}"></td>
                 <td th:text="${person.phoneNumber}"></td>
                 <td th:text="${person.courseName}"></td>
+                <td th:text="${person.user != null ? person.user.username : 'No User Associated'}"></td>
                 <td>
                     <!-- Action Button -->
                     <a class="btn" th:href="@{/person/{id}(id=${person.personId})}">View</a>
