@@ -1,9 +1,7 @@
 package com.example.InventorySystem.services;
 
 import com.example.InventorySystem.models.ChallengePost;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 
