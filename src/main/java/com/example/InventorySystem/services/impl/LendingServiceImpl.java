@@ -92,7 +92,7 @@ public class LendingServiceImpl implements LendingService {
                 throw new NoSuchElementException("Lending not found");
             }
         } catch (Exception e) {
-            log.error("Error occurred while deleting lending with ID: {}", lendingId, e);
+            log.error("Error occurred while deleting lending, with ID: {}", lendingId, e);
             throw e;
         }
     }
