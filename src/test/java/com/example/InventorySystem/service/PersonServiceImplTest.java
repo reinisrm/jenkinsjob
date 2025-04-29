@@ -31,9 +31,6 @@ class PersonServiceImplTest {
     @Mock
     private UserRepo userRepo;
 
-    @Mock
-    private LendingService lendingService;
-
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -122,5 +119,15 @@ class PersonServiceImplTest {
 
         assertThrows(NoSuchElementException.class, () -> personService.deletePersonById(personId));
         verify(personRepo, never()).deleteById(personId);
+    }
+
+    @Test
+    void testCreatePerson_NullInput_ThrowsException() {
+        int tempUserId = 1;
+
+        assertThrows(IllegalArgumentException.class, () -> personService.createPerson(null, tempUserId));
+
+        verify(personRepo, never()).save(any());
+        verify(userRepo, never()).findById(anyInt());
     }
 }

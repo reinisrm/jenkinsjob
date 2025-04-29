@@ -141,4 +141,10 @@ class InventoryServiceImplTest {
 
         verifyNoInteractions(lendingService);
     }
+
+    @Test
+    void testCreateInventory_NullInput_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> inventoryService.createInventory(null));
+        verify(inventoryRepo, never()).save(any());
+    }
 }

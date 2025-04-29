@@ -126,4 +126,11 @@ class LendingServiceImplTest {
 
         verify(lendingRepo, never()).deleteById(lendingId);
     }
+
+    @Test
+    void testCreateLending_NullInput_ThrowsException() {
+        assertThrows(IllegalArgumentException.class, () -> lendingService.createLending(null));
+        verify(lendingRepo, never()).save(any());
+    }
+
 }
