@@ -119,7 +119,7 @@
             <sec:authorize access="hasAuthority('ADMIN')">
                 <a class="btn" th:href="@{/challenges/update/{postId}(postId=${post.id})}">Edit</a>
                 <form th:action="@{/challenges/delete/{postId}(postId=${post.id})}" method="post" style="display:inline;">
-                    <button type="submit" class="btn">Delete</button>
+                    <button type="submit" class="btn" onclick="return confirm('Are you sure you want to delete this challenge?')">Delete</button>
                 </form>
             </sec:authorize>
         </div>
