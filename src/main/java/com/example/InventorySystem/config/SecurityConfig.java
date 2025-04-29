@@ -16,7 +16,6 @@ import org.springframework.security.web.SecurityFilterChain;
 @EnableWebSecurity
 public class SecurityConfig {
 
-
     //@Bean
     public UserDetailsManagerImpl userDetailsManager() {
         UserDetailsManagerImpl manager = new UserDetailsManagerImpl();
