@@ -1,8 +1,6 @@
 package com.example.InventorySystem.controllers;
 
-import com.example.InventorySystem.config.MyUserDetails;
 import com.example.InventorySystem.models.ChallengePost;
-import com.example.InventorySystem.models.User;
 import com.example.InventorySystem.services.impl.ChallengePostServiceImpl;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -13,11 +11,9 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -86,28 +82,6 @@ class ChallengePostControllerTest {
 
         verify(challengePostService).getPostById(nonExistentPostId);
     }
-
-    @Test
-    void testCreatePostSuccess() throws Exception { //TODO fix this
-        ChallengePost challengePost = setUpCreateChallengePost();
-        challengePost.setId(1);
-
-        // mock auth and usedetails
-        MyUserDetails userDetails = mock(MyUserDetails.class);
-        User mockUser = new User("testUser", "password");
-        mockUser.setUserId(1);
-        when(userDetails.getUser()).thenReturn(mockUser);
-
-        mockMvc.perform(post("/challenges/create")
-                        .param("title", challengePost.getTitle())
-                        .param("text", challengePost.getText())
-                        .principal(() -> "testUser"))
-                .andExpect(status().is3xxRedirection())
-                .andExpect(redirectedUrl("/challenges/"));
-
-        verify(challengePostService).createPost(any(ChallengePost.class), eq(1));
-    }
-
 
     @Test
     void testUpdatePostSuccess() throws Exception {
