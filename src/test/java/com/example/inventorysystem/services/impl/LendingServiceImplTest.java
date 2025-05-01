@@ -1,4 +1,4 @@
-package com.example.inventorysystem.service;
+package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.models.Lending;
 import com.example.inventorysystem.repos.LendingRepo;
@@ -132,5 +132,4 @@ class LendingServiceImplTest {
         assertThrows(IllegalArgumentException.class, () -> lendingService.createLending(null));
         verify(lendingRepo, never()).save(any());
     }
-
 }

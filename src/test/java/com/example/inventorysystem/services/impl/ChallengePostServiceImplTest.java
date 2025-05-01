@@ -1,4 +1,4 @@
-package com.example.inventorysystem.service;
+package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.models.ChallengePost;
 import com.example.inventorysystem.models.User;
