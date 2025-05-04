@@ -2,8 +2,8 @@ package com.example.inventorysystem.controllers;
 
 import com.example.inventorysystem.config.MyUserDetails;
 import com.example.inventorysystem.constants.ViewNames;
-import com.example.inventorysystem.models.ChallengePost;
 import com.example.inventorysystem.models.User;
+import com.example.inventorysystem.models.dto.ChallengePostDTO;
 import com.example.inventorysystem.services.impl.ChallengePostServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class ChallengePostController {
     @GetMapping("/")
     public String showAllPosts(Model model) {
         log.info("Displaying all challenge posts");
-        List<ChallengePost> posts = challengePostService.getAllPosts();
+        List<ChallengePostDTO> posts = challengePostService.getAllPostDTOs();
         model.addAttribute("posts", posts);
         return ViewNames.SHOW_ALL_CHALLENGES;
     }
@@ -41,7 +41,7 @@ public class ChallengePostController {
     @GetMapping("/{postId}")
     public String showOnePost(@PathVariable("postId") int postId, Model model) {
         log.info("Displaying challenge post with id: {}", postId);
-        ChallengePost post = challengePostService.getPostById(postId)
+        ChallengePostDTO post = challengePostService.getPostDTOById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
         model.addAttribute("post", post);
         return ViewNames.SHOW_ONE_CHALLENGE;
@@ -49,16 +49,16 @@ public class ChallengePostController {
 
     @GetMapping("/create")
     public String showCreateForm(Model model) {
-        model.addAttribute("challengePost", new ChallengePost());
+        model.addAttribute("challengePost", new ChallengePostDTO());
         return ViewNames.CREATE_CHALLENGE;
     }
 
     @PostMapping("/create")
-    public String createPost(@ModelAttribute ChallengePost challengePost, @AuthenticationPrincipal UserDetails userDetails) {
+    public String createPost(@ModelAttribute ChallengePostDTO challengePostDTO, @AuthenticationPrincipal UserDetails userDetails) {
         try {
             log.info("Attempting to create a new challenge post");
             User user = ((MyUserDetails) userDetails).getUser();
-            challengePostService.createPost(challengePost, user.getUserId());
+            challengePostService.createPost(challengePostDTO, user.getUserId());
             log.info("Challenge post created successfully");
             return ViewNames.REDIRECT_CHALLENGES;
         } catch (Exception e) {
@@ -69,17 +69,17 @@ public class ChallengePostController {
 
     @GetMapping("/update/{postId}")
     public String showUpdateForm(@PathVariable("postId") int postId, Model model) {
-        ChallengePost post = challengePostService.getPostById(postId)
+        ChallengePostDTO post = challengePostService.getPostDTOById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
         model.addAttribute("challengePost", post);
         return ViewNames.CHALLENGE_UPDATE;
     }
 
     @PostMapping("/update/{postId}")
-    public String updatePost(@PathVariable("postId") int postId, @ModelAttribute ChallengePost challengePost) {
+    public String updatePost(@PathVariable("postId") int postId, @ModelAttribute ChallengePostDTO challengePostDTO) {
         try {
             log.info("Attempting to update challenge post with id: {}", postId);
-            challengePostService.updatePost(postId, challengePost);
+            challengePostService.updatePost(postId, challengePostDTO);
             log.info("Challenge post with id: {} updated successfully", postId);
             return "redirect:/challenges/{postId}";
         } catch (Exception e) {

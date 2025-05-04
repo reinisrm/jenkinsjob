@@ -1,7 +1,9 @@
 package com.example.inventorysystem.services.impl;
 
+import com.example.inventorysystem.mappers.ChallengePostMapper;
 import com.example.inventorysystem.models.ChallengePost;
 import com.example.inventorysystem.models.User;
+import com.example.inventorysystem.models.dto.ChallengePostDTO;
 import com.example.inventorysystem.repos.ChallengePostRepo;
 import com.example.inventorysystem.repos.UserRepo;
 import com.example.inventorysystem.services.ChallengePostService;
@@ -44,57 +46,44 @@ public class ChallengePostServiceImpl implements ChallengePostService {
         this.userRepo = userRepo;
     }
 
-    @Override
-    public List<ChallengePost> getAllPosts() {
-        log.info("Fetching all challenge posts");
+    public List<ChallengePostDTO> getAllPostDTOs() {
         List<ChallengePost> posts = challengePostRepo.findAll();
-        posts.sort(Comparator.comparing(ChallengePost::getCreatedDate).reversed()); // Sort by date descending
+        posts.sort(Comparator.comparing(ChallengePost::getCreatedDate).reversed());
         posts.forEach(post -> post.setFormattedDate(formatDateToLatvian(LocalDate.from(post.getCreatedDate()))));
-        return posts;
+        return posts.stream().map(ChallengePostMapper::toDTO).toList();
     }
 
-    @Override
-    public Optional<ChallengePost> getPostById(int postId) {
-        log.info("Fetching challenge post with id: {}", postId);
+    public Optional<ChallengePostDTO> getPostDTOById(int postId) {
         Optional<ChallengePost> post = challengePostRepo.findById(postId);
         post.ifPresent(p -> {
             if (p.getCreatedDate() != null) {
                 p.setFormattedDate(formatDateToLatvian(p.getCreatedDate().toLocalDate()));
             }
         });
-        return post;
+        return post.map(ChallengePostMapper::toDTO);
     }
 
-    @Override
-    public ChallengePost createPost(ChallengePost post, int userId) {
+    public ChallengePostDTO createPost(ChallengePostDTO dto, int userId) {
         log.info("Creating challenge post for user id: {}", userId);
         User user = userRepo.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found with id: " + userId));
-        post.setUser(user);
+        ChallengePost post = ChallengePostMapper.toEntity(dto, user);
         ChallengePost savedPost = challengePostRepo.save(post);
-        log.info("Challenge post created successfully with id: {}", savedPost.getId());
-        return savedPost;
+        return ChallengePostMapper.toDTO(savedPost);
     }
 
-    @Override
     @Transactional
-    public ChallengePost updatePost(int postId, ChallengePost postDetails) {
-        log.info("Updating challenge post with id: {}", postId);
+    public ChallengePostDTO updatePost(int postId, ChallengePostDTO dto) {
         ChallengePost post = challengePostRepo.findById(postId)
                 .orElseThrow(() -> new NoSuchElementException("Post not found with id: " + postId));
-
-        post.setTitle(postDetails.getTitle());
-        post.setText(postDetails.getText());
+        post.setTitle(dto.getTitle());
+        post.setText(dto.getText());
         ChallengePost updatedPost = challengePostRepo.save(post);
-        log.info("Challenge post with id: {} updated successfully", postId);
-        return updatedPost;
+        return ChallengePostMapper.toDTO(updatedPost);
     }
 
-    @Override
     public void deletePostById(int postId) {
-        log.info("Deleting challenge post with id: {}", postId);
         challengePostRepo.deleteById(postId);
-        log.info("Challenge post with id: {} deleted successfully", postId);
     }
 
     private String formatDateToLatvian(LocalDate date) {

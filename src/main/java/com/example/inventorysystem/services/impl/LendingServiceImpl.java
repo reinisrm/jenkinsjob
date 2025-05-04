@@ -1,7 +1,13 @@
 package com.example.inventorysystem.services.impl;
 
+import com.example.inventorysystem.mappers.LendingMapper;
+import com.example.inventorysystem.models.Inventory;
 import com.example.inventorysystem.models.Lending;
+import com.example.inventorysystem.models.Person;
+import com.example.inventorysystem.models.dto.LendingDTO;
+import com.example.inventorysystem.repos.InventoryRepo;
 import com.example.inventorysystem.repos.LendingRepo;
+import com.example.inventorysystem.repos.PersonRepo;
 import com.example.inventorysystem.services.LendingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +18,7 @@ import java.time.LocalDate;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class LendingServiceImpl implements LendingService {
@@ -19,82 +26,76 @@ public class LendingServiceImpl implements LendingService {
     private final Logger log = LoggerFactory.getLogger(LendingServiceImpl.class);
 
     private final LendingRepo lendingRepo;
+    private final InventoryRepo inventoryRepo;
+    private final PersonRepo personRepo;
 
     @Autowired
-    public LendingServiceImpl(LendingRepo lendingRepo) {
+    public LendingServiceImpl(LendingRepo lendingRepo, InventoryRepo inventoryRepo, PersonRepo personRepo) {
         this.lendingRepo = lendingRepo;
+        this.inventoryRepo = inventoryRepo;
+        this.personRepo = personRepo;
     }
 
-    @Override
-    public List<Lending> getAll() {
-        return lendingRepo.findAll();
+    public List<LendingDTO> getAllAsDTOs() {
+        return lendingRepo.findAll().stream().map(LendingMapper::toDTO).toList();
     }
 
-    @Override
-    public Optional<Lending> getLendingById(int lendingId) {
-        Optional<Lending> lendingOptional = lendingRepo.findById(lendingId);
-        if (lendingOptional.isEmpty()) {
-            log.warn("Lending with id: {} is not found", lendingId);
-        } else {
-            log.info("Lending found with id: {}", lendingId);
-        }
-        return lendingOptional;
+    public Optional<LendingDTO> getLendingDTOById(int lendingId) {
+        return lendingRepo.findById(lendingId).map(LendingMapper::toDTO);
     }
 
-    @Override
-    public void createLending(Lending lending) {
+    public void createLendingFromDTO(LendingDTO dto) {
         try {
-            if (lending != null && lending.getLendingId() == 0) {
-                lendingRepo.save(lending);
-                log.info("Lending created successfully: {}", lending);
-            } else {
-                throw new IllegalArgumentException("Invalid data or lending_id already exists");
-            }
+            Inventory inventory = inventoryRepo.findById(dto.getInventoryId())
+                    .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
+            Person borrower = personRepo.findById(dto.getBorrowerId())
+                    .orElseThrow(() -> new NoSuchElementException("Borrower not found"));
+            Person lender = personRepo.findById(dto.getLenderId())
+                    .orElseThrow(() -> new NoSuchElementException("Lender not found"));
+
+            Lending lending = LendingMapper.toEntity(dto, inventory, borrower, lender);
+            lendingRepo.save(lending);
+            log.info("Lending created from DTO: {}", lending);
         } catch (Exception e) {
-            log.error("Error occurred while creating lending", e);
+            log.error("Error creating lending from DTO", e);
+        }
+    }
+
+    public void updateLendingFromDTO(int lendingId, LendingDTO dto) {
+        try {
+            Inventory inventory = inventoryRepo.findById(dto.getInventoryId())
+                    .orElseThrow(() -> new NoSuchElementException("Inventory not found"));
+            Person borrower = personRepo.findById(dto.getBorrowerId())
+                    .orElseThrow(() -> new NoSuchElementException("Borrower not found"));
+            Person lender = personRepo.findById(dto.getLenderId())
+                    .orElseThrow(() -> new NoSuchElementException("Lender not found"));
+
+            Lending updated = LendingMapper.toEntity(dto, inventory, borrower, lender);
+            updated.setLendingId(lendingId); // Ensure ID consistency
+            lendingRepo.save(updated);
+            log.info("Lending with ID {} updated from DTO", lendingId);
+        } catch (Exception e) {
+            log.error("Error updating lending from DTO", e);
         }
     }
 
     @Override
     public void updateLending(int lendingId, Lending updatedLendingData) {
-        try {
-            Optional<Lending> existingLendingOptional = lendingRepo.findById(lendingId);
-            if (existingLendingOptional.isPresent()) {
-                Lending existingLending = existingLendingOptional.get();
-                if (updatedLendingData != null && existingLending.getLendingId() == lendingId) {
-                    existingLending.setDate(updatedLendingData.getDate());
-                    existingLending.setEstimatedReturnDate(updatedLendingData.getEstimatedReturnDate());
-                    existingLending.setReceived(updatedLendingData.isReceived());
-                    existingLending.setReturned(updatedLendingData.isReturned());
-                    existingLending.setComments(updatedLendingData.getComments());
-                    existingLending.setInventory(updatedLendingData.getInventory());
-                    existingLending.setBorrower(updatedLendingData.getBorrower());
-                    existingLending.setLender(updatedLendingData.getLender());
-                    Lending updatedLending = lendingRepo.save(existingLending);
-                    log.info("Lending with id: {} updated successfully: {}", lendingId, updatedLending);
-                } else {
-                    throw new IllegalArgumentException("Invalid lending_id or data");
-                }
-            } else {
-                throw new NoSuchElementException("Lending not found");
-            }
-        } catch (Exception e) {
-            log.error("Error occurred while updating lending with ID: {}", lendingId, e);
-        }
+        updateLendingFromDTO(lendingId, LendingMapper.toDTO(updatedLendingData)); // Delegate to DTO method
     }
 
     @Override
     public void deleteLendingById(int lendingId) {
         try {
-            Optional<Lending> existingLendingOptional = lendingRepo.findById(lendingId);
-            if (existingLendingOptional.isPresent()) {
+            Optional<Lending> existing = lendingRepo.findById(lendingId);
+            if (existing.isPresent()) {
                 lendingRepo.deleteById(lendingId);
                 log.info("Lending with ID {} deleted successfully", lendingId);
             } else {
-                throw new NoSuchElementException("Lending not found");
+                log.warn("Lending with ID {} not found for deletion", lendingId);
             }
         } catch (Exception e) {
-            log.error("Error occurred while deleting lending, with ID: {}", lendingId, e);
+            log.error("Error occurred while deleting lending with ID: {}", lendingId, e);
         }
     }
 

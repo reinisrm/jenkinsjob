@@ -1,19 +1,20 @@
 package com.example.inventorysystem.controllers;
 
 import com.example.inventorysystem.constants.ViewNames;
-import com.example.inventorysystem.models.Inventory;
-import com.example.inventorysystem.models.Lending;
-import com.example.inventorysystem.models.Person;
-import com.example.inventorysystem.services.impl.*;
+import com.example.inventorysystem.models.dto.LendingDTO;
+import com.example.inventorysystem.services.impl.InventoryServiceImpl;
+import com.example.inventorysystem.services.impl.LendingServiceImpl;
+import com.example.inventorysystem.services.impl.PersonServiceImpl;
+import jakarta.validation.Valid;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
-import jakarta.validation.Valid;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+
 import java.util.List;
 import java.util.Optional;
 
@@ -35,14 +36,13 @@ public class LendingController {
         this.personService = personService;
     }
 
-
     @GetMapping("/")
     public String showAllLending(Model model) {
         log.info("Get lending list");
         try {
-            List<Lending> lendings = lendingService.getAll();
-            log.info("Lending list size: {}", lendings.size());
-            model.addAttribute("lendings", lendings);
+            List<LendingDTO> lendingDTOs = lendingService.getAllAsDTOs();
+            log.info("Lending list size: {}", lendingDTOs.size());
+            model.addAttribute("lendings", lendingDTOs);
             return ViewNames.SHOW_ALL_LENDING;
         } catch (Exception e) {
             log.error("Error occurred while fetching all lendings", e);
@@ -53,10 +53,10 @@ public class LendingController {
     @GetMapping("/{lendingId}")
     public String showOneLending(@PathVariable("lendingId") int lendingId, Model model) {
         log.info("Get lending with id: {}", lendingId);
-        Optional<Lending> lending = lendingService.getLendingById(lendingId);
+        Optional<LendingDTO> lendingDTO = lendingService.getLendingDTOById(lendingId);
 
-        if (lending.isPresent()) {
-            model.addAttribute(ViewNames.LENDING, lending);
+        if (lendingDTO.isPresent()) {
+            model.addAttribute(ViewNames.LENDING, lendingDTO.get());
             log.info("Lending with id: {} received successfully", lendingId);
             return ViewNames.SHOW_ONE_LENDING;
         } else {
@@ -69,13 +69,10 @@ public class LendingController {
     public String createLendingForm(Model model) {
         log.info("Creating new lending");
         try {
-            model.addAttribute(ViewNames.LENDING, new Lending());
-            List<Inventory> inventoryList = inventoryService.getAll();
-            model.addAttribute("inventoryList", inventoryList);
-            List<Person> borrowerList = personService.getAll();
-            model.addAttribute("borrowerList", borrowerList);
-            List<Person> lenderList = personService.getAll();
-            model.addAttribute("lenderList", lenderList);
+            model.addAttribute(ViewNames.LENDING, new LendingDTO());
+            model.addAttribute("inventoryList", inventoryService.getAll());
+            model.addAttribute("borrowerList", personService.getAll());
+            model.addAttribute("lenderList", personService.getAll());
             return ViewNames.CREATE_LENDING;
         } catch (Exception e) {
             log.error("Error occurred while preparing create lending form", e);
@@ -84,20 +81,17 @@ public class LendingController {
     }
 
     @PostMapping("/create")
-    public String createLending(@Valid Lending lending, BindingResult result, RedirectAttributes attributes) {
+    public String createLending(@Valid @ModelAttribute("lending") LendingDTO lendingDTO, BindingResult result, RedirectAttributes attributes) {
         if (result.hasErrors()) {
             log.error("Failed creating a new lending, error: {}", result);
             attributes.addFlashAttribute("org.springframework.validation.BindingResult.lending", result);
-            attributes.addFlashAttribute(ViewNames.LENDING, lending);
+            attributes.addFlashAttribute(ViewNames.LENDING, lendingDTO);
             return "redirect:/lending/create";
         }
         try {
-            lendingService.createLending(lending);
-            log.info("Lending created successfully: {}", lending);
+            lendingService.createLendingFromDTO(lendingDTO);
+            log.info("Lending created successfully: {}", lendingDTO);
             return ViewNames.REDIRECT_LENDING;
-        } catch (IllegalArgumentException e) {
-            log.error("Error creating lending record: {}", e.getMessage());
-            return ViewNames.ERROR;
         } catch (Exception e) {
             log.error("Unexpected error creating lending record", e);
             return ViewNames.ERROR;
@@ -107,17 +101,11 @@ public class LendingController {
     @GetMapping("/update/{lendingId}")
     public String showUpdateForm(@PathVariable("lendingId") int lendingId, Model model) {
         try {
-            Optional<Lending> lending = lendingService.getLendingById(lendingId);
-
-            List<Inventory> inventoryList = inventoryService.getAll();
-            List<Person> borrowerList = personService.getAll();
-            List<Person> lenderList = personService.getAll();
-
-            model.addAttribute("lending", lending.orElse(new Lending()));
-            model.addAttribute("inventoryList", inventoryList);
-            model.addAttribute("borrowerList", borrowerList);
-            model.addAttribute("lenderList", lenderList);
-
+            Optional<LendingDTO> lendingDTO = lendingService.getLendingDTOById(lendingId);
+            model.addAttribute("lending", lendingDTO.orElse(new LendingDTO()));
+            model.addAttribute("inventoryList", inventoryService.getAll());
+            model.addAttribute("borrowerList", personService.getAll());
+            model.addAttribute("lenderList", personService.getAll());
             return ViewNames.LENDING_UPDATE;
         } catch (Exception e) {
             log.error("Error occurred while preparing update form for lending with ID: {}", lendingId, e);
@@ -126,20 +114,20 @@ public class LendingController {
     }
 
     @PostMapping("/update/{lendingId}")
-    public String updateLending(@PathVariable("lendingId") int lendingId, @Valid Lending lending,
+    public String updateLending(@PathVariable("lendingId") int lendingId, @Valid @ModelAttribute("lending") LendingDTO lendingDTO,
                                 BindingResult result) {
         if (lendingId <= 0) {
-            log.warn("The id can only be positive, negative value provided: {}", lendingId);
+            log.warn("Invalid lendingId provided: {}", lendingId);
             return ViewNames.LENDING_UPDATE;
         }
         if (result.hasErrors()) {
-            log.warn("Error updating lending: {}", result.getAllErrors());
+            log.warn("Validation error updating lending: {}", result.getAllErrors());
             return ViewNames.LENDING_UPDATE;
         }
         try {
-            lendingService.updateLending(lendingId, lending);
+            lendingService.updateLendingFromDTO(lendingId, lendingDTO);
             log.info("Lending with id: {} has been updated", lendingId);
-            return "redirect:/lending/{lendingId}";
+            return "redirect:/lending/" + lendingId;
         } catch (Exception e) {
             log.error("Error occurred while updating lending with ID: {}", lendingId, e);
             return ViewNames.ERROR;
@@ -149,11 +137,7 @@ public class LendingController {
     @PostMapping("/delete/{lendingId}")
     public String deleteLending(@PathVariable("lendingId") int lendingId) {
         if (lendingId <= 0) {
-            log.warn("The id can only be positive, negative value provided: {}", lendingId);
-        }
-        Optional<Lending> lending = lendingService.getLendingById(lendingId);
-        if (!lending.isPresent()) {
-            log.warn("Lending with id: {} for delete is not found", lendingId);
+            log.warn("Invalid lendingId provided: {}", lendingId);
         }
         lendingService.deleteLendingById(lendingId);
         log.info("Lending with id: {} is deleted", lendingId);

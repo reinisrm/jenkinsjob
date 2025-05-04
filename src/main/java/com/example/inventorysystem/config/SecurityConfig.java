@@ -41,26 +41,26 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(auth -> auth
                         .requestMatchers("/error").permitAll()
-                        .requestMatchers("/challenges/").hasAnyAuthority("ADMIN", "USER")
-                        .requestMatchers("/challenges/{postId}").hasAuthority("ADMIN")
-                        .requestMatchers("/challenges/create").hasAuthority("ADMIN")
-                        .requestMatchers("/challenges/update/**").hasAuthority("ADMIN")
-                        .requestMatchers("/challenges/delete/**").hasAuthority("ADMIN")
-                        .requestMatchers("/lending").hasAuthority("ADMIN") // retrieve
-                        .requestMatchers("/lending/**").hasAuthority("ADMIN") // retrieve one
-                        .requestMatchers("/lending/delete/**").hasAuthority("ADMIN") // delete
-                        .requestMatchers("/lending/create").hasAuthority("ADMIN") // create
-                        .requestMatchers("/lending/update/**").hasAuthority("ADMIN") // update
-                        .requestMatchers("/person").hasAuthority("ADMIN")
-                        .requestMatchers("/person/**").hasAuthority("ADMIN")
-                        .requestMatchers("/person/delete/**").hasAuthority("ADMIN")
-                        .requestMatchers("/person/create").hasAuthority("ADMIN")
-                        .requestMatchers("/person/update/**").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory").hasAnyAuthority("ADMIN", "USER")
-                        .requestMatchers("/inventory/**").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory/delete/**").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory/create").hasAuthority("ADMIN")
-                        .requestMatchers("/inventory/update/**").hasAuthority("ADMIN"))
+                        .requestMatchers("/challenges/").permitAll()
+                        .requestMatchers("/challenges/{postId}").permitAll()
+                        .requestMatchers("/challenges/create").permitAll()
+                        .requestMatchers("/challenges/update/**").permitAll()
+                        .requestMatchers("/challenges/delete/**").permitAll()
+                        .requestMatchers("/lending").permitAll()
+                        .requestMatchers("/lending/**").permitAll()
+                        .requestMatchers("/lending/delete/**").permitAll()
+                        .requestMatchers("/lending/create").permitAll()
+                        .requestMatchers("/lending/update/**").permitAll()
+                        .requestMatchers("/person").permitAll()
+                        .requestMatchers("/person/**").permitAll()
+                        .requestMatchers("/person/delete/**").permitAll()
+                        .requestMatchers("/person/create").permitAll()
+                        .requestMatchers("/person/update/**").permitAll()
+                        .requestMatchers("/inventory").permitAll()
+                        .requestMatchers("/inventory/**").permitAll()
+                        .requestMatchers("/inventory/delete/**").permitAll()
+                        .requestMatchers("/inventory/create").permitAll()
+                        .requestMatchers("/inventory/update/**").permitAll())
                         .formLogin(login -> login
                             .defaultSuccessUrl("/challenges/")  // Redirect after successful login
                             .permitAll())

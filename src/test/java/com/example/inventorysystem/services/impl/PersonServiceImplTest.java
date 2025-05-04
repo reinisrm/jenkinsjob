@@ -2,19 +2,15 @@ package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.models.Person;
 import com.example.inventorysystem.models.User;
+import com.example.inventorysystem.models.dto.PersonDTO;
 import com.example.inventorysystem.repos.PersonRepo;
 import com.example.inventorysystem.repos.UserRepo;
-import com.example.inventorysystem.services.impl.PersonServiceImpl;
+import com.example.inventorysystem.services.LendingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
+import org.mockito.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -30,6 +26,9 @@ class PersonServiceImplTest {
     @Mock
     private UserRepo userRepo;
 
+    @Mock
+    private LendingService lendingService;
+
     @BeforeEach
     void setUp() {
         MockitoAnnotations.openMocks(this);
@@ -37,96 +36,113 @@ class PersonServiceImplTest {
 
     @Test
     void testGetAll() {
-        List<Person> expectedPersons = new ArrayList<>();
-        expectedPersons.add(new Person());
-        when(personRepo.findAll()).thenReturn(expectedPersons);
-
-        List<Person> actualPersons = personService.getAll();
-
-        assertEquals(expectedPersons, actualPersons);
-    }
-
-    @Test
-    void testGetPersonById_ExistingId() {
-        int personId = 1;
-        Person expectedPerson = new Person();
-        when(personRepo.findById(personId)).thenReturn(Optional.of(expectedPerson));
-
-        Optional<Person> actualPersonOptional = personService.getPersonById(personId);
-        assertTrue(actualPersonOptional.isPresent());
-        assertEquals(expectedPerson, actualPersonOptional.get());
-    }
-
-    @Test
-    void testGetPersonById_NonExistingId() {
-        int personId = 999;
-        when(personRepo.findById(personId)).thenReturn(Optional.empty());
-
-        Optional<Person> actualPersonOptional = personService.getPersonById(personId);
-        assertTrue(actualPersonOptional.isEmpty());
-    }
-
-    @Test
-    void testCreatePerson_WithValidUser() {
         Person person = new Person();
-        int userId = 1;
+        List<Person> persons = List.of(person);
+        when(personRepo.findAll()).thenReturn(persons);
+
+        List<PersonDTO> result = personService.getAll();
+
+        assertEquals(1, result.size());
+        verify(personRepo).findAll();
+    }
+
+    @Test
+    void testGetPersonById_Existing() {
+        Person person = new Person();
+        person.setPersonId(1);
+        when(personRepo.findById(1)).thenReturn(Optional.of(person));
+
+        Optional<PersonDTO> result = personService.getPersonById(1);
+
+        assertTrue(result.isPresent());
+        assertEquals(1, result.get().getPersonId());
+    }
+
+    @Test
+    void testGetPersonById_NonExisting() {
+        when(personRepo.findById(999)).thenReturn(Optional.empty());
+
+        Optional<PersonDTO> result = personService.getPersonById(999);
+
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void testCreatePerson_Valid() {
+        PersonDTO dto = new PersonDTO();
+        dto.setName("Jane");
+        dto.setUserId(10);
+
         User user = new User();
-        when(userRepo.findById(userId)).thenReturn(Optional.of(user));
+        when(userRepo.findById(10)).thenReturn(Optional.of(user));
 
-        personService.createPerson(person, userId);
+        personService.createPerson(dto);
 
-        verify(personRepo).save(person);
-        assertEquals(user, person.getUser());
+        verify(personRepo).save(any(Person.class));
     }
 
     @Test
-    void testUpdatePersonById_ExistingId() {
-        int personId = 1;
-        Person existingPerson = new Person();
-        existingPerson.setBorrowing(new ArrayList<>());
-        existingPerson.setLending(new ArrayList<>());
+    void testCreatePerson_UserNotFound() {
+        PersonDTO dto = new PersonDTO();
+        dto.setUserId(999);
+        when(userRepo.findById(999)).thenReturn(Optional.empty());
 
-        Person updatedPersonData = new Person();
-        updatedPersonData.setName("John");
+        personService.createPerson(dto);
 
-        when(personRepo.findById(personId)).thenReturn(Optional.of(existingPerson));
-        when(personRepo.save(any(Person.class))).thenReturn(existingPerson);
-
-        personService.updatePersonById(personId, updatedPersonData);
-
-        verify(personRepo).save(existingPerson);
-        assertEquals("John", existingPerson.getName());
+        verify(personRepo, never()).save(any());
     }
 
     @Test
-    void testDeletePersonById_ExistingId() {
+    void testUpdatePersonById_Existing() {
         int personId = 1;
+
+        Person existing = new Person();
+        existing.setPersonId(personId);
+        existing.setBorrowing(new ArrayList<>());
+        existing.setLending(new ArrayList<>());
+
+        PersonDTO dto = new PersonDTO();
+        dto.setName("Updated");
+        dto.setUserId(5);
+
+        when(personRepo.findById(personId)).thenReturn(Optional.of(existing));
+        when(userRepo.findById(5)).thenReturn(Optional.of(new User()));
+        when(personRepo.save(any())).thenReturn(existing);
+
+        personService.updatePersonById(personId, dto);
+
+        verify(personRepo).save(existing);
+        verify(lendingService, times(0)).updateLending(anyInt(), any()); // Because lending lists are empty
+    }
+
+    @Test
+    void testUpdatePersonById_NonExisting() {
+        when(personRepo.findById(999)).thenReturn(Optional.empty());
+
+        personService.updatePersonById(999, new PersonDTO());
+
+        verify(personRepo, never()).save(any());
+    }
+
+    @Test
+    void testDeletePersonById_Existing() {
         Person person = new Person();
         person.setBorrowing(new ArrayList<>());
         person.setLending(new ArrayList<>());
-        when(personRepo.findById(personId)).thenReturn(Optional.of(person));
 
-        personService.deletePersonById(personId);
+        when(personRepo.findById(1)).thenReturn(Optional.of(person));
 
-        verify(personRepo).deleteById(personId);
+        personService.deletePersonById(1);
+
+        verify(personRepo).deleteById(1);
     }
 
     @Test
-    void testDeletePersonById_NonExistingId() {
-        int personId = 999;
-        when(personRepo.findById(personId)).thenReturn(Optional.empty());
+    void testDeletePersonById_NonExisting() {
+        when(personRepo.findById(999)).thenReturn(Optional.empty());
 
-        assertThrows(NoSuchElementException.class, () -> personService.deletePersonById(personId));
-        verify(personRepo, never()).deleteById(personId);
-    }
+        personService.deletePersonById(999);
 
-    @Test
-    void testCreatePerson_NullInput_ThrowsException() {
-        int tempUserId = 1;
-
-        assertThrows(IllegalArgumentException.class, () -> personService.createPerson(null, tempUserId));
-
-        verify(personRepo, never()).save(any());
-        verify(userRepo, never()).findById(anyInt());
+        verify(personRepo, never()).deleteById(any());
     }
 }

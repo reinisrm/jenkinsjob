@@ -2,8 +2,8 @@ package com.example.inventorysystem.controllers;
 
 import com.example.inventorysystem.config.UserDetailsManagerImpl;
 import com.example.inventorysystem.constants.ViewNames;
-import com.example.inventorysystem.models.Person;
 import com.example.inventorysystem.models.User;
+import com.example.inventorysystem.models.dto.PersonDTO;
 import com.example.inventorysystem.services.impl.PersonServiceImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 
 import jakarta.validation.Valid;
 
-import javax.swing.text.View;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,10 +35,10 @@ public class PersonController {
 
     @GetMapping("/")
     public String showAllPerson(Model model) {
-        log.info("Get person list");
+        log.info("Fetching all persons");
         try {
-            List<Person> persons = personService.getAll();
-            log.info("Person list size: {}", persons.size());
+            List<PersonDTO> persons = personService.getAll();
+            log.info("Number of persons retrieved: {}", persons.size());
             model.addAttribute("persons", persons);
             return ViewNames.SHOW_ALL_PERSON;
         } catch (Exception e) {
@@ -50,41 +49,45 @@ public class PersonController {
 
     @GetMapping("/{personId}")
     public String showOnePerson(@PathVariable("personId") int personId, Model model) {
-        log.info("Get person with id: {}", personId);
-        Optional<Person> person = personService.getPersonById(personId);
+        log.info("Fetching person with ID: {}", personId);
+        Optional<PersonDTO> personDTO = personService.getPersonById(personId);
 
-        if(person.isPresent()) {
-            Person personEntity = person.get(); // Used for logging name+surname
-            String nameSurname = personEntity.getName() + " " + personEntity.getSurname(); // Same applies here
-            model.addAttribute(ViewNames.PERSON, person);
-            log.info("Received person: {}", nameSurname);
+        if (personDTO.isPresent()) {
+            log.info("Retrieved person: {} {}", personDTO.get().getName(), personDTO.get().getSurname());
+            model.addAttribute(ViewNames.PERSON, personDTO.get());
             return ViewNames.SHOW_ONE_PERSON;
         } else {
-            log.info("Person with id: {} not found", personId);
+            log.warn("Person with ID: {} not found", personId);
             return ViewNames.ERROR;
         }
     }
 
-
     @GetMapping("/create")
     public String createPersonForm(Model model) {
-        log.info("Creating new person");
-        List<User> users = userDetailsManager.allUsers();
-        model.addAttribute(ViewNames.PERSON, new Person());
-        model.addAttribute("users", users);
-        return ViewNames.CREATE_PERSON;
+        log.info("Rendering form to create a new person");
+        try {
+            List<User> users = userDetailsManager.allUsers();
+            model.addAttribute(ViewNames.PERSON, new PersonDTO());
+            model.addAttribute("users", users);
+            return ViewNames.CREATE_PERSON;
+        } catch (Exception e) {
+            log.error("Error occurred while preparing create person form", e);
+            return ViewNames.ERROR;
+        }
     }
 
     @PostMapping("/create")
-    public String createPerson(@Valid Person person, BindingResult result, @RequestParam int userId) {
+    public String createPerson(@Valid @ModelAttribute(ViewNames.PERSON) PersonDTO personDTO,
+                               BindingResult result, @RequestParam int userId) {
         if (result.hasErrors()) {
-            log.error("Failed creating a new person, error: {}", result);
+            log.warn("Validation failed while creating a new person: {}", result.getAllErrors());
             return ViewNames.CREATE_PERSON;
         }
 
         try {
-            personService.createPerson(person, userId);
-            log.info("Person created successfully with user id: {}", userId);
+            personDTO.setUserId(userId);
+            personService.createPerson(personDTO);
+            log.info("Person created successfully with user ID: {}", userId);
             return ViewNames.REDIRECT_PERSON;
         } catch (Exception e) {
             log.error("Error occurred while creating person", e);
@@ -94,10 +97,18 @@ public class PersonController {
 
     @GetMapping("/update/{personId}")
     public String showUpdateForm(@PathVariable("personId") int personId, Model model) {
+        log.info("Preparing update form for person with ID: {}", personId);
         try {
-            Optional<Person> person = personService.getPersonById(personId);
-            model.addAttribute(ViewNames.PERSON, person);
-            return ViewNames.PERSON_UPDATE;
+            Optional<PersonDTO> personOpt = personService.getPersonById(personId);
+            if (personOpt.isPresent()) {
+                List<User> users = userDetailsManager.allUsers();
+                model.addAttribute(ViewNames.PERSON, personOpt.get());
+                model.addAttribute("users", users);
+                return ViewNames.PERSON_UPDATE;
+            } else {
+                log.warn("Person with ID: {} not found for update", personId);
+                return ViewNames.ERROR;
+            }
         } catch (Exception e) {
             log.error("Error occurred while preparing update form for person with ID: {}", personId, e);
             return ViewNames.ERROR;
@@ -105,22 +116,20 @@ public class PersonController {
     }
 
     @PostMapping("/update/{personId}")
-    public String updatePersonById(@PathVariable("personId") int personId, @Valid Person person,
+    public String updatePersonById(@PathVariable("personId") int personId,
+                                   @Valid @ModelAttribute(ViewNames.PERSON) PersonDTO personDTO,
                                    BindingResult result) {
-        if (personId <= 0) {
-            log.warn("The id can only be positive, negative value provided: {}", personId);
-            return ViewNames.PERSON_UPDATE;
-        }
+        log.info("Attempting to update person with ID: {}", personId);
 
         if (result.hasErrors()) {
-            log.warn("Error updating person: {}", result.getAllErrors());
+            log.warn("Validation failed during update for person ID {}: {}", personId, result.getAllErrors());
             return ViewNames.PERSON_UPDATE;
         }
 
         try {
-            personService.updatePersonById(personId, person);
-            log.info("Person with id: {} has been updated", personId);
-            return "redirect:/person/{personId}";
+            personService.updatePersonById(personId, personDTO);
+            log.info("Person with ID: {} updated successfully", personId);
+            return "redirect:/person/" + personId;
         } catch (Exception e) {
             log.error("Error occurred while updating person with ID: {}", personId, e);
             return ViewNames.ERROR;
@@ -129,19 +138,26 @@ public class PersonController {
 
     @PostMapping("/delete/{personId}")
     public String deletePersonById(@PathVariable("personId") int personId) {
+        log.info("Attempting to delete person with ID: {}", personId);
 
         if (personId <= 0) {
-            log.warn("The id can only be positive, negative value provided: {}", personId);
-            return ViewNames.SHOW_ONE_PERSON;
-        }
-        Optional<Person> person = personService.getPersonById(personId);
-        if (!person.isPresent()) {
-            log.warn("Person with id: {} for delete is not found", personId);
+            log.warn("Invalid person ID: {}. Must be positive.", personId);
             return ViewNames.SHOW_ONE_PERSON;
         }
 
-        personService.deletePersonById(personId);
-        log.info("Person with id: {} is deleted", personId);
-        return ViewNames.REDIRECT_PERSON;
+        try {
+            Optional<PersonDTO> personOpt = personService.getPersonById(personId);
+            if (personOpt.isEmpty()) {
+                log.warn("Person with ID: {} not found for deletion", personId);
+                return ViewNames.SHOW_ONE_PERSON;
+            }
+
+            personService.deletePersonById(personId);
+            log.info("Person with ID: {} deleted successfully", personId);
+            return ViewNames.REDIRECT_PERSON;
+        } catch (Exception e) {
+            log.error("Error occurred while deleting person with ID: {}", personId, e);
+            return ViewNames.ERROR;
+        }
     }
 }

@@ -1,14 +1,15 @@
 package com.example.inventorysystem.services.impl;
 
+import com.example.inventorysystem.mappers.InventoryMapper;
 import com.example.inventorysystem.models.Inventory;
 import com.example.inventorysystem.models.Lending;
+import com.example.inventorysystem.models.dto.InventoryDTO;
 import com.example.inventorysystem.repos.InventoryRepo;
+import com.example.inventorysystem.services.InventoryService;
 import com.example.inventorysystem.services.LendingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.example.inventorysystem.services.InventoryService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -18,97 +19,95 @@ import java.util.Optional;
 public class InventoryServiceImpl implements InventoryService {
 
     private final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
-
     private final InventoryRepo inventoryRepo;
     private final LendingService lendingService;
 
-    @Autowired
     public InventoryServiceImpl(InventoryRepo inventoryRepo, LendingService lendingService) {
         this.inventoryRepo = inventoryRepo;
         this.lendingService = lendingService;
     }
 
-
     @Override
-    public List<Inventory> getAll() {
-        return inventoryRepo.findAll();
+    public List<InventoryDTO> getAll() {
+        List<Inventory> inventoryList = inventoryRepo.findAll();
+        log.info("Fetched {} inventory items", inventoryList.size());
+        return inventoryList.stream()
+                .map(InventoryMapper::toDTO)
+                .toList();
     }
 
     @Override
-    public Optional<Inventory> getInventoryById(int inventoryId) {
+    public Optional<InventoryDTO> getInventoryById(int inventoryId) {
         Optional<Inventory> inventoryOptional = inventoryRepo.findById(inventoryId);
         if (inventoryOptional.isEmpty()) {
-            log.warn("Inventory with id: {} is not found", inventoryId);
+            log.warn("Inventory with ID {} not found", inventoryId);
+            return Optional.empty();
         } else {
-            log.info("Inventory found with id: {}", inventoryId);
+            log.info("Found inventory with ID {}", inventoryId);
+            return inventoryOptional.map(InventoryMapper::toDTO);
         }
-        return inventoryOptional;
     }
 
     @Override
-    public void createInventory(Inventory inventory) {
+    public void createInventory(InventoryDTO inventoryDTO) {
         try {
-            if (inventory != null && inventory.getInventoryId() == 0) {
+            Inventory inventory = InventoryMapper.toEntity(inventoryDTO);
+            if (inventory.getInventoryId() == 0) {
                 inventoryRepo.save(inventory);
                 log.info("Inventory created successfully: {}", inventory);
             } else {
-                throw new IllegalArgumentException("Invalid data or inventory_id already exists");
+                throw new IllegalArgumentException("Invalid inventory data or ID already exists");
             }
         } catch (Exception e) {
-            log.error("Error occurred while creating inventory", e);
+            log.error("Error creating inventory", e);
         }
     }
 
     @Override
-    public void updateInventoryById(int inventoryId, Inventory updatedInventoryData) {
+    public void updateInventoryById(int inventoryId, InventoryDTO dto) {
         try {
-            Optional<Inventory> existingInventoryOptional = inventoryRepo.findById(inventoryId);
-            if (existingInventoryOptional.isPresent()) {
-                Inventory existingInventory = existingInventoryOptional.get();
+            Optional<Inventory> optionalInventory = inventoryRepo.findById(inventoryId);
+            if (optionalInventory.isPresent()) {
+                Inventory inventory = optionalInventory.get();
+                inventory.setDevice(dto.getDevice());
+                inventory.setInventoryNumber(dto.getInventoryNumber());
+                inventory.setRoom(dto.getRoom());
+                inventory.setCabinet(dto.getCabinet());
 
-                // update existingInventory properties
-                existingInventory.setDevice(updatedInventoryData.getDevice());
-                existingInventory.setInventoryNumber(updatedInventoryData.getInventoryNumber());
-                existingInventory.setRoom(updatedInventoryData.getRoom());
-                existingInventory.setCabinet(updatedInventoryData.getCabinet());
+                Inventory updatedInventory = inventoryRepo.save(inventory);
 
-                // save the updated Inventory
-                Inventory updatedInventory = inventoryRepo.save(existingInventory);
-
-                // update references in the associated Lending entities
                 for (Lending lending : updatedInventory.getLending()) {
                     lending.setInventory(updatedInventory);
                     lendingService.updateLending(lending.getLendingId(), lending);
                 }
 
-                log.info("Inventory with ID {} updated successfully: {}", inventoryId, updatedInventory);
+                log.info("Inventory updated successfully: {}", updatedInventory);
             } else {
                 throw new NoSuchElementException("Inventory not found");
             }
         } catch (Exception e) {
-            log.error("Error occurred while updating inventory with ID: {}", inventoryId, e);
+            log.error("Error updating inventory with ID: {}", inventoryId, e);
         }
     }
 
     @Override
     public void deleteInventoryById(int inventoryId) {
         try {
-            Optional<Inventory> existingInventoryOptional = inventoryRepo.findById(inventoryId);
-            if (existingInventoryOptional.isPresent()) {
-                Inventory existingInventory = existingInventoryOptional.get();
+            Optional<Inventory> optionalInventory = inventoryRepo.findById(inventoryId);
+            if (optionalInventory.isPresent()) {
+                Inventory inventory = optionalInventory.get();
 
-                // set the associated inventories in lendings to null
-                for (Lending lending : existingInventory.getLending()) {
+                for (Lending lending : inventory.getLending()) {
                     lending.setInventory(null);
                 }
 
                 inventoryRepo.deleteById(inventoryId);
-                log.info("Inventory with id: {} deleted successfully", inventoryId);
+                log.info("Inventory deleted successfully with ID: {}", inventoryId);
             } else {
                 throw new NoSuchElementException("Inventory not found");
             }
         } catch (Exception e) {
-            log.error("Error occurred while deleting inventory with ID: {}", inventoryId, e);
+            log.error("Error deleting inventory with ID: {}", inventoryId, e);
         }
     }
 }
