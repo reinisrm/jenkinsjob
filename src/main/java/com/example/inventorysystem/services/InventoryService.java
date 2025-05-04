@@ -1,6 +1,5 @@
 package com.example.inventorysystem.services;
 
-import com.example.inventorysystem.models.Inventory;
 import com.example.inventorysystem.models.dto.InventoryDTO;
 
 import java.util.List;

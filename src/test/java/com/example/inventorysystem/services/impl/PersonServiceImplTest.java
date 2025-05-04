@@ -1,11 +1,8 @@
 package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.models.Person;
-import com.example.inventorysystem.models.User;
 import com.example.inventorysystem.models.dto.PersonDTO;
 import com.example.inventorysystem.repos.PersonRepo;
-import com.example.inventorysystem.repos.UserRepo;
-import com.example.inventorysystem.services.LendingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.*;
@@ -22,12 +19,6 @@ class PersonServiceImplTest {
 
     @Mock
     private PersonRepo personRepo;
-
-    @Mock
-    private UserRepo userRepo;
-
-    @Mock
-    private LendingService lendingService;
 
     @BeforeEach
     void setUp() {
@@ -71,25 +62,10 @@ class PersonServiceImplTest {
     void testCreatePerson_Valid() {
         PersonDTO dto = new PersonDTO();
         dto.setName("Jane");
-        dto.setUserId(10);
-
-        User user = new User();
-        when(userRepo.findById(10)).thenReturn(Optional.of(user));
 
         personService.createPerson(dto);
 
         verify(personRepo).save(any(Person.class));
-    }
-
-    @Test
-    void testCreatePerson_UserNotFound() {
-        PersonDTO dto = new PersonDTO();
-        dto.setUserId(999);
-        when(userRepo.findById(999)).thenReturn(Optional.empty());
-
-        personService.createPerson(dto);
-
-        verify(personRepo, never()).save(any());
     }
 
     @Test
@@ -98,21 +74,16 @@ class PersonServiceImplTest {
 
         Person existing = new Person();
         existing.setPersonId(personId);
-        existing.setBorrowing(new ArrayList<>());
-        existing.setLending(new ArrayList<>());
 
         PersonDTO dto = new PersonDTO();
         dto.setName("Updated");
-        dto.setUserId(5);
 
         when(personRepo.findById(personId)).thenReturn(Optional.of(existing));
-        when(userRepo.findById(5)).thenReturn(Optional.of(new User()));
         when(personRepo.save(any())).thenReturn(existing);
 
         personService.updatePersonById(personId, dto);
 
         verify(personRepo).save(existing);
-        verify(lendingService, times(0)).updateLending(anyInt(), any()); // Because lending lists are empty
     }
 
     @Test
@@ -127,8 +98,6 @@ class PersonServiceImplTest {
     @Test
     void testDeletePersonById_Existing() {
         Person person = new Person();
-        person.setBorrowing(new ArrayList<>());
-        person.setLending(new ArrayList<>());
 
         when(personRepo.findById(1)).thenReturn(Optional.of(person));
 

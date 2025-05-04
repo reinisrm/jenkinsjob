@@ -1,10 +1,8 @@
 package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.models.Inventory;
-import com.example.inventorysystem.models.Lending;
 import com.example.inventorysystem.models.dto.InventoryDTO;
 import com.example.inventorysystem.repos.InventoryRepo;
-import com.example.inventorysystem.services.LendingService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.InjectMocks;
@@ -24,9 +22,6 @@ class InventoryServiceImplTest {
 
     @Mock
     private InventoryRepo inventoryRepo;
-
-    @Mock
-    private LendingService lendingService;
 
     @BeforeEach
     void setUp() {
@@ -88,7 +83,7 @@ class InventoryServiceImplTest {
         dto.setInventoryNumber("INV333");
         dto.setRoom("Room8");
         dto.setCabinet("CabinetX");
-        dto.setInventoryId(99); // Should not be set during creation
+        dto.setInventoryId(99);
 
         inventoryService.createInventory(dto);
 
@@ -100,10 +95,6 @@ class InventoryServiceImplTest {
         int inventoryId = 1;
         Inventory inventory = new Inventory("OldDevice", "INV000", "OldRoom", "OldCabinet");
         inventory.setInventoryId(inventoryId);
-
-        Lending lending = new Lending();
-        lending.setLendingId(10);
-        inventory.setLending(List.of(lending));
 
         when(inventoryRepo.findById(inventoryId)).thenReturn(Optional.of(inventory));
         when(inventoryRepo.save(any())).thenReturn(inventory);
@@ -120,7 +111,6 @@ class InventoryServiceImplTest {
         assertEquals("INV999", inventory.getInventoryNumber());
         assertEquals("NewRoom", inventory.getRoom());
         assertEquals("NewCabinet", inventory.getCabinet());
-        verify(lendingService).updateLending(10, lending);
     }
 
     @Test
@@ -133,15 +123,12 @@ class InventoryServiceImplTest {
         inventoryService.updateInventoryById(999, dto);
 
         verify(inventoryRepo, never()).save(any());
-        verifyNoInteractions(lendingService);
     }
 
     @Test
     void testDeleteInventoryById_Existing() {
         int id = 1;
         Inventory inventory = new Inventory();
-        Lending lending = new Lending();
-        inventory.setLending(List.of(lending));
 
         when(inventoryRepo.findById(id)).thenReturn(Optional.of(inventory));
 
@@ -157,6 +144,5 @@ class InventoryServiceImplTest {
         inventoryService.deleteInventoryById(123);
 
         verify(inventoryRepo, never()).deleteById(123);
-        verifyNoInteractions(lendingService);
     }
 }

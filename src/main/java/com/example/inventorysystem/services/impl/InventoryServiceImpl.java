@@ -2,11 +2,9 @@ package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.mappers.InventoryMapper;
 import com.example.inventorysystem.models.Inventory;
-import com.example.inventorysystem.models.Lending;
 import com.example.inventorysystem.models.dto.InventoryDTO;
 import com.example.inventorysystem.repos.InventoryRepo;
 import com.example.inventorysystem.services.InventoryService;
-import com.example.inventorysystem.services.LendingService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -20,11 +18,9 @@ public class InventoryServiceImpl implements InventoryService {
 
     private final Logger log = LoggerFactory.getLogger(InventoryServiceImpl.class);
     private final InventoryRepo inventoryRepo;
-    private final LendingService lendingService;
 
-    public InventoryServiceImpl(InventoryRepo inventoryRepo, LendingService lendingService) {
+    public InventoryServiceImpl(InventoryRepo inventoryRepo) {
         this.inventoryRepo = inventoryRepo;
-        this.lendingService = lendingService;
     }
 
     @Override
@@ -76,11 +72,6 @@ public class InventoryServiceImpl implements InventoryService {
 
                 Inventory updatedInventory = inventoryRepo.save(inventory);
 
-                for (Lending lending : updatedInventory.getLending()) {
-                    lending.setInventory(updatedInventory);
-                    lendingService.updateLending(lending.getLendingId(), lending);
-                }
-
                 log.info("Inventory updated successfully: {}", updatedInventory);
             } else {
                 throw new NoSuchElementException("Inventory not found");
@@ -95,12 +86,6 @@ public class InventoryServiceImpl implements InventoryService {
         try {
             Optional<Inventory> optionalInventory = inventoryRepo.findById(inventoryId);
             if (optionalInventory.isPresent()) {
-                Inventory inventory = optionalInventory.get();
-
-                for (Lending lending : inventory.getLending()) {
-                    lending.setInventory(null);
-                }
-
                 inventoryRepo.deleteById(inventoryId);
                 log.info("Inventory deleted successfully with ID: {}", inventoryId);
             } else {

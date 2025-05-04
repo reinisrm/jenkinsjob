@@ -9,5 +9,4 @@ public class PersonDTO {
     private String surname;
     private String phoneNumber;
     private String courseName;
-    private int userId;
 }

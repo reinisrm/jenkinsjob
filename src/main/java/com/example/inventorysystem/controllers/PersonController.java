@@ -1,8 +1,6 @@
 package com.example.inventorysystem.controllers;
 
-import com.example.inventorysystem.config.UserDetailsManagerImpl;
 import com.example.inventorysystem.constants.ViewNames;
-import com.example.inventorysystem.models.User;
 import com.example.inventorysystem.models.dto.PersonDTO;
 import com.example.inventorysystem.services.impl.PersonServiceImpl;
 import org.slf4j.Logger;
@@ -25,12 +23,10 @@ public class PersonController {
     private final Logger log = LoggerFactory.getLogger(PersonController.class);
 
     private final PersonServiceImpl personService;
-    private final UserDetailsManagerImpl userDetailsManager;
 
     @Autowired
-    public PersonController(PersonServiceImpl personService, UserDetailsManagerImpl userDetailsManager) {
+    public PersonController(PersonServiceImpl personService) {
         this.personService = personService;
-        this.userDetailsManager = userDetailsManager;
     }
 
     @GetMapping("/")
@@ -54,7 +50,7 @@ public class PersonController {
 
         if (personDTO.isPresent()) {
             log.info("Retrieved person: {} {}", personDTO.get().getName(), personDTO.get().getSurname());
-            model.addAttribute(ViewNames.PERSON, personDTO.get());
+            model.addAttribute(ViewNames.PERSON, personDTO);
             return ViewNames.SHOW_ONE_PERSON;
         } else {
             log.warn("Person with ID: {} not found", personId);
@@ -66,9 +62,7 @@ public class PersonController {
     public String createPersonForm(Model model) {
         log.info("Rendering form to create a new person");
         try {
-            List<User> users = userDetailsManager.allUsers();
             model.addAttribute(ViewNames.PERSON, new PersonDTO());
-            model.addAttribute("users", users);
             return ViewNames.CREATE_PERSON;
         } catch (Exception e) {
             log.error("Error occurred while preparing create person form", e);
@@ -78,16 +72,15 @@ public class PersonController {
 
     @PostMapping("/create")
     public String createPerson(@Valid @ModelAttribute(ViewNames.PERSON) PersonDTO personDTO,
-                               BindingResult result, @RequestParam int userId) {
+                               BindingResult result) {
         if (result.hasErrors()) {
             log.warn("Validation failed while creating a new person: {}", result.getAllErrors());
             return ViewNames.CREATE_PERSON;
         }
 
         try {
-            personDTO.setUserId(userId);
             personService.createPerson(personDTO);
-            log.info("Person created successfully with user ID: {}", userId);
+            log.info("Person created successfully");
             return ViewNames.REDIRECT_PERSON;
         } catch (Exception e) {
             log.error("Error occurred while creating person", e);
@@ -101,9 +94,7 @@ public class PersonController {
         try {
             Optional<PersonDTO> personOpt = personService.getPersonById(personId);
             if (personOpt.isPresent()) {
-                List<User> users = userDetailsManager.allUsers();
                 model.addAttribute(ViewNames.PERSON, personOpt.get());
-                model.addAttribute("users", users);
                 return ViewNames.PERSON_UPDATE;
             } else {
                 log.warn("Person with ID: {} not found for update", personId);

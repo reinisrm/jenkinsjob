@@ -1,13 +1,9 @@
 package com.example.inventorysystem.services.impl;
 
 import com.example.inventorysystem.mappers.PersonMapper;
-import com.example.inventorysystem.models.Lending;
 import com.example.inventorysystem.models.Person;
-import com.example.inventorysystem.models.User;
 import com.example.inventorysystem.models.dto.PersonDTO;
 import com.example.inventorysystem.repos.PersonRepo;
-import com.example.inventorysystem.repos.UserRepo;
-import com.example.inventorysystem.services.LendingService;
 import com.example.inventorysystem.services.PersonService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +16,9 @@ import java.util.Optional;
 public class PersonServiceImpl implements PersonService {
     private final Logger log = LoggerFactory.getLogger(PersonServiceImpl.class);
     private final PersonRepo personRepo;
-    private final LendingService lendingService;
-    private final UserRepo userRepo;
 
-    public PersonServiceImpl(PersonRepo personRepo, LendingService lendingService, UserRepo userRepo) {
+    public PersonServiceImpl(PersonRepo personRepo) {
         this.personRepo = personRepo;
-        this.lendingService = lendingService;
-        this.userRepo = userRepo;
     }
 
     @Override
@@ -52,11 +44,7 @@ public class PersonServiceImpl implements PersonService {
     @Override
     public void createPerson(PersonDTO dto) {
         try {
-            Optional<User> userOptional = userRepo.findById(dto.getUserId());
-            if (userOptional.isEmpty()) {
-                throw new NoSuchElementException("User not found");
-            }
-            Person person = PersonMapper.toEntity(dto, userOptional.get());
+            Person person = PersonMapper.toEntity(dto);
             personRepo.save(person);
             log.info("Created new person: {}", person);
         } catch (Exception e) {
@@ -79,19 +67,7 @@ public class PersonServiceImpl implements PersonService {
             person.setSurname(dto.getSurname());
             person.setPhoneNumber(dto.getPhoneNumber());
             person.setCourseName(dto.getCourseName());
-
-            userRepo.findById(dto.getUserId()).ifPresent(person::setUser);
-
             Person updated = personRepo.save(person);
-
-            for (Lending l : updated.getBorrowing()) {
-                l.setBorrower(updated);
-                lendingService.updateLending(l.getLendingId(), l);
-            }
-            for (Lending l : updated.getLending()) {
-                l.setLender(updated);
-                lendingService.updateLending(l.getLendingId(), l);
-            }
 
             log.info("Updated person: {}", updated);
         } catch (Exception e) {
@@ -107,17 +83,6 @@ public class PersonServiceImpl implements PersonService {
                 log.warn("Person with ID {} not found for deletion", personId);
                 return;
             }
-
-            Person person = personOpt.get();
-            log.info("Deleting person with ID: {}", personId);
-
-            for (Lending l : person.getBorrowing()) {
-                l.setBorrower(null);
-            }
-            for (Lending l : person.getLending()) {
-                l.setLender(null);
-            }
-
             personRepo.deleteById(personId);
             log.info("Deleted person with ID: {}", personId);
         } catch (Exception e) {

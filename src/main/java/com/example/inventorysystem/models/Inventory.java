@@ -4,7 +4,6 @@ import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import java.util.List;
 
 @Entity
 @Getter
@@ -24,9 +23,6 @@ public class Inventory {
     private String room;
     @Column(name = "Cabinet")
     private String cabinet;
-
-    @OneToMany(mappedBy = "inventory")
-    private List<Lending> lending;
 
     public Inventory(String device, String inventoryNumber, String room, String cabinet) {
         this.device = device;

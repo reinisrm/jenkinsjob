@@ -47,7 +47,7 @@ public class InventoryController {
         Optional<InventoryDTO> inventoryDTO = inventoryService.getInventoryById(inventoryId);
 
         if (inventoryDTO.isPresent()) {
-            model.addAttribute(ViewNames.INVENTORY, inventoryDTO.get());
+            model.addAttribute(ViewNames.INVENTORY, inventoryDTO);
             log.info("Inventory found: {}", inventoryDTO.get().getInventoryNumber());
             return ViewNames.SHOW_ONE_INVENTORY;
         } else {
